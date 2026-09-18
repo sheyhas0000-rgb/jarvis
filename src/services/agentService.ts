@@ -99,6 +99,15 @@ export async function executeSafeAction(
     };
   }
 
+  // Handle conversational chat reply
+  if (action.action === 'chat_reply') {
+    return {
+      success: true,
+      message: action.reply,
+      isRealWindows: false,
+    };
+  }
+
   // 1. Check user permission
   if (!allowedLocations[action.location]) {
     const locNames: Record<ApprovedLocation, string> = {

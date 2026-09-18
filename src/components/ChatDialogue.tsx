@@ -79,18 +79,18 @@ export const ChatDialogue: React.FC<ChatDialogueProps> = ({
   };
 
   const starterPrompts = [
-    { text: 'ilovani yuklab olish', label: '📥 Windows, Mac & Androidga yuklab olish' },
-    { text: 'instagramga kir', label: '📸 Instagram' },
+    { text: 'salom', label: '👋 Salomlashish' },
+    { text: 'sen kimsan', label: '🤖 JARVIS haqida' },
     { text: 'youtubega kir', label: '▶️ YouTube' },
-    { text: 'fayllarni och', label: '📂 Fayllarni ochish' },
-    { text: 'optimizatsiya.bat yarat', label: '⚡ Temp tozalash skripti' },
-    { text: 'facebookga kir', label: '👥 Facebook' },
     { text: 'telegramga kir', label: '✈️ Telegram' },
+    { text: 'instagramga kir', label: '📸 Instagram' },
     { text: 'chatgptga kir', label: '🤖 ChatGPT' },
     { text: 'Desktopda test.txt yarat', label: '📄 Fayl yaratish' },
     { text: 'Desktopda salom.txt yarat ichiga Salom dunyo deb yoz', label: '✍️ Matn bilan fayl' },
-    { text: 'Ish stolimdagi fayllarni ko‘rsat', label: '📂 Fayllar ro‘yxati' },
-    { text: 'test.txt faylini och', label: '👁️ Faylni ochish' },
+    { text: 'fayllarni och', label: '📂 Fayllarni ochish' },
+    { text: 'test.txt faylini och', label: '👁️ Faylni ko‘rish' },
+    { text: 'optimizatsiya.bat yarat', label: '⚡ Kesh tozalash skripti' },
+    { text: 'har hil narsalar yuklash kerakmi', label: '💡 O‘rnatish va yuklashlar haqida' },
   ];
 
   return (
@@ -219,12 +219,17 @@ export const ChatDialogue: React.FC<ChatDialogueProps> = ({
                   <div className="flex items-center justify-between flex-wrap gap-2">
                     <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded bg-emerald-950/70 border border-emerald-500/40 text-emerald-300 font-mono">
                       <span className="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
-                      JARVIS Tayyor • Hech narsa yuklash shart emas
+                      JARVIS Tayyor • Qo‘shimcha yuklash shart emas
                     </span>
 
                     {msg.status === 'success' && (
                       <span className="inline-flex items-center gap-1 text-emerald-400 font-medium">
                         <CheckCircle2 className="w-3.5 h-3.5" /> Bajarildi
+                      </span>
+                    )}
+                    {msg.status === 'info' && (
+                      <span className="inline-flex items-center gap-1 text-cyan-400 font-medium">
+                        <Sparkles className="w-3.5 h-3.5" /> Javob berildi
                       </span>
                     )}
                     {msg.status === 'error' && (
@@ -246,9 +251,9 @@ export const ChatDialogue: React.FC<ChatDialogueProps> = ({
                             <p className="text-xs font-bold text-slate-100 font-mono truncate">
                               {msg.createdFile?.name || ('name' in (msg.action || {}) ? (msg.action as any).name : 'hujjat.txt')}
                             </p>
-                            <p className="text-[11px] text-emerald-400 flex items-center gap-1">
-                              <CheckCircle2 className="w-3 h-3" />
-                              <span>Kompyuteringizga yuklab berildi (Downloads)</span>
+                            <p className="text-[11px] text-cyan-300 flex items-center gap-1">
+                              <CheckCircle2 className="w-3 h-3 text-emerald-400" />
+                              <span>Virtual xotirada yaratildi • Ortiqcha narsa yuklanmaydi</span>
                             </p>
                           </div>
                         </div>
@@ -261,11 +266,11 @@ export const ChatDialogue: React.FC<ChatDialogueProps> = ({
                               const fContent = msg.createdFile?.content ?? ('content' in (msg.action || {}) ? (msg.action as any).content : '');
                               downloadFileToComputer(fName, fContent);
                             }}
-                            title="Mac / PC kompyuteriga qayta yuklab olish"
-                            className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-cyan-600 hover:bg-cyan-500 text-white font-medium text-[11px] transition-colors shadow-sm"
+                            title="Faylni kompyuteringizga saqlash (ixtiyoriy)"
+                            className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white font-medium text-[11px] transition-colors border border-slate-700 shadow-sm cursor-pointer"
                           >
-                            <Download className="w-3.5 h-3.5" />
-                            <span>Yuklab olish</span>
+                            <Download className="w-3.5 h-3.5 text-cyan-400" />
+                            <span>Yuklab olish (Ixtiyoriy)</span>
                           </button>
 
                           {onViewFile && (

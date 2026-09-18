@@ -381,6 +381,79 @@ app.post('/api/sandbox/execute', (req, res) => {
   }
 });
 
+// Gemini AI fallback & natural language conversational parser
+let aiClient: GoogleGenAI | null = null;
+function getGeminiClient(): GoogleGenAI | null {
+  if (!aiClient && process.env.GEMINI_API_KEY) {
+    try {
+      aiClient = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
+    } catch (e) {
+      console.warn('Failed to initialize GoogleGenAI:', e);
+    }
+  }
+  return aiClient;
+}
+
+app.post('/api/ai-parse', async (req, res) => {
+  const { prompt } = req.body;
+  if (!prompt || typeof prompt !== 'string') {
+    return res.json({ recognized: false });
+  }
+
+  const ai = getGeminiClient();
+  if (!ai) {
+    return res.json({ recognized: false });
+  }
+
+  try {
+    const systemInstruction = `Siz JARVIS - O'zbek tilidagi eng aqlli, tezkor va odobli shaxsiy yordamchisiz.
+Foydalanuvchining so'rovini tahlil qiling:
+
+1. Agar buyruq fayl/papka amali yoki vebsayt ochish bo'lsa:
+{
+  "recognized": true,
+  "action": {
+    "action": "create_file" | "create_folder" | "list_files" | "open_file" | "open_folder" | "rename_file" | "delete_file" | "open_website" | "open_download_modal",
+    "location": "Desktop" | "Documents" | "Downloads" | "Pictures" | "Videos",
+    "name": "fayl_nomi.txt",
+    "content": "matn",
+    "url": "https://...",
+    "title": "YouTube | Telegram | Google...",
+    "iconType": "youtube" | "telegram" | "instagram" | "google" | "web"
+  }
+}
+
+2. Agar foydalanuvchi suhbatlashsa, savol bersa, shikoyat qilsa ("har xil narsa yuklash kerak emas", "nega yaxshi ishlamayapti", "qandaysan", "sen kimsan"), yordam so'rasa:
+{
+  "recognized": true,
+  "action": {
+    "action": "chat_reply",
+    "reply": "O'zbek tilida samimiy, aniq va foydali javob. Tushuntiring: JARVIS o'rnatilgach 100% mustaqil ishlaydi, hech qanday ortiqcha narsalar (Node.js, terminal, skriptlar) yuklash mutlaqo shart emas. Fayllar, vebsaytlar va barcha buyruqlar to'g'ridan-to'g'ri ilovaning o'zida bir zumda bajariladi."
+  }
+}
+Faqat toza JSON formatida javob qaytaring.`;
+
+    const response = await ai.models.generateContent({
+      model: 'gemini-3.1-flash-lite',
+      contents: prompt,
+      config: {
+        systemInstruction,
+        responseMimeType: 'application/json',
+      },
+    });
+
+    const text = response.text?.trim();
+    if (text) {
+      const parsed = JSON.parse(text);
+      return res.json(parsed);
+    }
+  } catch (err: any) {
+    console.warn('Gemini /api/ai-parse error:', err?.message || err);
+  }
+
+  return res.json({ recognized: false });
+});
+
 async function startServer() {
   if (process.env.NODE_ENV !== 'production') {
     const vite = await createViteServer({

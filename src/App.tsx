@@ -207,6 +207,8 @@ export default function App() {
       return `${action.action} muvaffaqiyatsiz`;
     }
     switch (action.action) {
+      case 'chat_reply':
+        return 'Suhbat / Javob';
       case 'open_website':
         return `${action.title} sayti ochildi`;
       case 'open_download_modal':
@@ -233,8 +235,8 @@ export default function App() {
   // Actual execution on Local Agent or Sandbox
   const performActionExecution = async (action: SafeAction, userPrompt: string) => {
     setIsProcessing(true);
-    setOrbStatus('processing');
-    setOrbText('Windows operatsiyasi bajarilmoqda...');
+    setOrbStatus(action.action === 'chat_reply' ? 'idle' : 'processing');
+    setOrbText(action.action === 'chat_reply' ? 'JARVIS javob bermoqda...' : 'Operatsiya bajarilmoqda...');
 
     const result = await executeSafeAction(
       action,
@@ -248,14 +250,11 @@ export default function App() {
     const timeFormatted = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
 
     if (result.success) {
-      setOrbStatus('success');
+      setOrbStatus(action.action === 'chat_reply' ? 'idle' : 'success');
       setOrbText(result.message.split('\n')[0]);
 
-      // If a file was created, download it automatically to the user's computer (Downloads folder)
-      if (action.action === 'create_file') {
-        const fileContent = result.createdFile?.content || action.content || '';
-        downloadFileToComputer(action.name, fileContent);
-      }
+      // Note: We deliberately do NOT force automatic browser downloads of files!
+      // Files are stored inside JARVIS Virtual Sandbox and can be viewed or exported optionally.
 
       // If website, open in new tab (if popup permitted)
       if (action.action === 'open_website') {
@@ -324,7 +323,7 @@ export default function App() {
       sender: 'jarvis',
       text: result.message,
       timeFormatted,
-      status: result.success ? 'success' : 'error',
+      status: action.action === 'chat_reply' ? 'info' : (result.success ? 'success' : 'error'),
       action,
       isRealWindows: result.isRealWindows,
       fileItems: action.action === 'list_files' ? result.items : undefined,
@@ -348,7 +347,7 @@ export default function App() {
       timeFormatted,
       command: userPrompt,
       summary: getActionSummary(action, result.success),
-      status: result.success ? 'success' : 'error',
+      status: action.action === 'chat_reply' ? 'success' : (result.success ? 'success' : 'error'),
       response: result.message,
       action,
       isRealWindows: result.isRealWindows,
@@ -432,48 +431,59 @@ export default function App() {
     setOrbText("Buyruq tahlil qilinmoqda...");
     const aiResult = await parseWithAI(trimmed);
 
-    if (aiResult.recognized && aiResult.action) {
-      const safeAction = {
-        action: aiResult.action,
-        location: (aiResult.location || 'Desktop') as ApprovedLocation,
-        name: aiResult.name || '',
-        content: aiResult.content || '',
-        oldName: aiResult.oldName || '',
-        newName: aiResult.newName || '',
-      } as SafeAction;
-
-      if (safeAction.action === 'delete_file') {
-        const confirmMsg = `⚠️ "${safeAction.name}" faylini o‘chirishni tasdiqlaysizmi?`;
-        setOrbStatus('processing');
-        setOrbText(confirmMsg);
-
-        if (isVoiceFeedbackEnabled) {
-          SpeechHandler.speak(confirmMsg);
-        }
-
-        const confirmChatMsg: ChatMessage = {
-          id: generateUniqueId('jarvis-confirm'),
-          sender: 'jarvis',
-          text: confirmMsg,
-          timeFormatted,
-          status: 'pending',
-          pendingConfirmation: {
-            action: safeAction,
-            message: confirmMsg,
-            type: 'delete',
-          },
-        };
-        setChatMessages((prev) => [...prev, confirmChatMsg]);
+    if (aiResult.recognized) {
+      if (aiResult.action?.action === 'chat_reply' || aiResult.reply) {
+        const replyText = aiResult.action?.reply || aiResult.reply || "Tushundim. Sizga qanday yordam bera olaman?";
+        await performActionExecution({ action: 'chat_reply', reply: replyText }, trimmed);
         return;
       }
 
-      await performActionExecution(safeAction, trimmed);
-      return;
+      if (aiResult.action) {
+        const safeAction = {
+          action: aiResult.action.action || aiResult.action,
+          location: (aiResult.action.location || aiResult.location || 'Desktop') as ApprovedLocation,
+          name: aiResult.action.name || aiResult.name || '',
+          content: aiResult.action.content || aiResult.content || '',
+          oldName: aiResult.action.oldName || aiResult.oldName || '',
+          newName: aiResult.action.newName || aiResult.newName || '',
+          url: aiResult.action.url || aiResult.url || '',
+          title: aiResult.action.title || aiResult.title || '',
+          iconType: aiResult.action.iconType || aiResult.iconType || 'web',
+        } as SafeAction;
+
+        if (safeAction.action === 'delete_file') {
+          const confirmMsg = `⚠️ "${safeAction.name}" faylini o‘chirishni tasdiqlaysizmi?`;
+          setOrbStatus('processing');
+          setOrbText(confirmMsg);
+
+          if (isVoiceFeedbackEnabled) {
+            SpeechHandler.speak(confirmMsg);
+          }
+
+          const confirmChatMsg: ChatMessage = {
+            id: generateUniqueId('jarvis-confirm'),
+            sender: 'jarvis',
+            text: confirmMsg,
+            timeFormatted,
+            status: 'pending',
+            pendingConfirmation: {
+              action: safeAction,
+              message: confirmMsg,
+              type: 'delete',
+            },
+          };
+          setChatMessages((prev) => [...prev, confirmChatMsg]);
+          return;
+        }
+
+        await performActionExecution(safeAction, trimmed);
+        return;
+      }
     }
 
     // Step 3: Unrecognized command response
     setOrbStatus('error');
-    const errMsg = localParsed.error || `"${trimmed}" buyrug'ini tushunib bo'lmadi.\nMasalan: "Desktopda test.txt yarat" yoki "Downloads papkasini och".`;
+    const errMsg = localParsed.error || `"${trimmed}" buyrug'ini tushunib bo'lmadi.\nMasalan: "youtubega kir", "test.txt yarat" yoki "salom".`;
     setOrbText(errMsg);
 
     if (isVoiceFeedbackEnabled) {

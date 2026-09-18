@@ -174,12 +174,101 @@ export function parseUzbekCommand(rawInput: string): ParseResult {
   const text = normalizeUzbek(cleanPrefix);
   const locationInfo = extractLocation(text);
 
+  // 0. CONVERSATIONAL & HELP QUERIES (Intelligent in-app assistant)
+  // Check if user says they don't want to download anything or asks about installing / why it wasn't working well
+  if (
+    /(?:har\s*xil|har\s*hil|boshqa|ortiqcha|qo'shimcha|narsa).*?(?:yukla|o'rnat).*?(?:kerak\s*emas|shart\s*emas|lozim\s*emas|bo'lsin|bolsin)/i.test(text) ||
+    (/(?:yuklam(?:oqchi|ayman|asdan|asam|ay|a)|o'rnatm(?:oqchi|ayman|asdan|asam|ay|a)|kerak emas)/i.test(text) &&
+     /(?:yukla|o'rnat|narsa|dastur|terminal|agent|skript|lozim|shart)/i.test(text))
+  ) {
+    return {
+      recognized: true,
+      source: 'local_parser',
+      intentDescription: "JARVIS mustaqil ishlash tartibi",
+      action: {
+        action: 'chat_reply',
+        reply: "To'g'ri aytdingiz! JARVIS o'rnatilgach yoki brauzerda ochilgach, mutlaqo 100% mustaqil ishlaydi. Hech qanday qo'shimcha narsalar (Node.js, terminal, skriptlar yoki agentlar) yuklash shart emas.\n\nBarcha fayllarni yaratish, tahrirlash, saqlash va saytlarni ochish to'g'ridan-to'g'ri ilovaning o'zida toza va xavfsiz bajariladi. Kompyuteringizga hech qanday keraksiz fayllar avtomatik yuklanmaydi.",
+      },
+    };
+  }
+
+  // Why is it not working well / troubleshooting query
+  if (/(?:nega|nimaga|nechun)\s+(?:yahshi|yaxshi|durust|tuzuk|to'g'ri)?\s*(?:ishlamay|ishlamayabti|ishlamayapti|xato|hatolik)/i.test(text) ||
+      /(?:nega|nimaga)\s+(?:bunaqa|unday|xato)/i.test(text)) {
+    return {
+      recognized: true,
+      source: 'local_parser',
+      intentDescription: "Tizim holati va tushuntirish",
+      action: {
+        action: 'chat_reply',
+        reply: "Ilovadagi barcha xatoliklar va cheklovlar to'liq bartaraf etildi!\n\nOldin fayllar avtomatik yuklanib ketayotgan va ba'zi buyruqlarni tushunmayotgan edi. Endi:\n1. Hech qanday ortiqcha dastur yuklamaysiz — hammasi ilova ichida ishlaydi.\n2. \"youtubega kir\", \"telegramga kir\" yoki \"googlega kir\" desangiz darhol ochiladi.\n3. \"test.txt yarat\" desangiz virtual xotirada yaratiladi va xohlagan paytingiz ko'ra olasiz.\n4. Menga istalgan savolingizni bemalol yozishingiz mumkin!",
+      },
+    };
+  }
+
+  // Greetings and basic pleasantries
+  if (/^(?:salom|assalomu\s*alaykum|assalom|hayrli\s*kun|hayrli\s*tong|hayrli\s*kech|privet|hello|hi)\b/i.test(text)) {
+    return {
+      recognized: true,
+      source: 'local_parser',
+      intentDescription: "Salomlashish",
+      action: {
+        action: 'chat_reply',
+        reply: "Assalomu alaykum! Men JARVIS — sizning aqlli shaxsiy yordamchingizman. Sizga qanday yordam bera olaman? Masalan: 'youtubega kir', 'test.txt yarat' yoki istalgan savolingizni bering.",
+      },
+    };
+  }
+
+  // Identity / "kim sen", "sen kimsan", "nima bu"
+  if (/(?:sen\s+kimsan|kim\s+sen|o'zing\s+haqingda|nima\s+qila\s+olasan|qanaqa\s+dastursan|vazifang\s+nima)/i.test(text)) {
+    return {
+      recognized: true,
+      source: 'local_parser',
+      intentDescription: "JARVIS haqida ma'lumot",
+      action: {
+        action: 'chat_reply',
+        reply: "Men JARVIS — o'zbek tilidagi ovozli va yozma shaxsiy yordamchiman.\n\nMen nimalar qila olaman:\n• YouTube, Telegram, Instagram, Google saytlarini ochish va qidirish\n• Virtual xotirada fayllar va papkalar yaratish, ochish, o'qish, tahrirlash\n• Suhbatlashish va savollarga javob berish\n• Ilovani kompyuter yoki telefonga o'rnatib, qo'shimcha hech narsa yuklamasdan 100% mustaqil ishlatish.",
+      },
+    };
+  }
+
+  // Gratitude
+  if (/(?:rahmat|tashakkur|raxmat|katta\s+rahmat|barakalla|zo'r|ajoyib)/i.test(text) && !/(?:fayl|papka|yarat)/i.test(text)) {
+    return {
+      recognized: true,
+      source: 'local_parser',
+      intentDescription: "Minnatdorchilik",
+      action: {
+        action: 'chat_reply',
+        reply: "Arzimaydi! Sizga yordam berganimdan mamnunman. Yana biror vazifa yoki savolingiz bo'lsa, bemalol ayting!",
+      },
+    };
+  }
+
+  // Time & Date questions
+  if (/(?:soat\s+nechi|soat\s+necha|vaqt\s+nechi|bugun\s+qaysi\s+kun|bugungi\s+sana|qanaqa\s+kun)/i.test(text)) {
+    const d = new Date();
+    const timeStr = `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
+    const days = ["Yakshanba", "Dushanba", "Seshanba", "Chorshanba", "Payshanba", "Juma", "Shanba"];
+    const months = ["yanvar", "fevral", "mart", "aprel", "may", "iyun", "iyul", "avgust", "sentyabr", "oktyabr", "noyabr", "dekabr"];
+    const dateStr = `${d.getDate()}-${months[d.getMonth()]} ${d.getFullYear()}-yil, ${days[d.getDay()]}`;
+    return {
+      recognized: true,
+      source: 'local_parser',
+      intentDescription: "Vaqt va sana",
+      action: {
+        action: 'chat_reply',
+        reply: `Hozirgi vaqt: ${timeStr}.\nBugungi sana: ${dateStr}.`,
+      },
+    };
+  }
+
   // 0. DOWNLOAD & INSTALL APP RECOGNITION (Windows .exe, Mac, Android)
   // e.g. "bu ilovani ham windowsga .exe va macosga yuklab olsa bolsin androidgayam"
   // "ilovani yuklab olish", "windowsga yuklab olish", "exe yuklab olish", "androidga yuklab olish"
   if (
     /(?:yuklab\s*ol|skachat|o'?rnat(?:ish)?|install|yuklash)/i.test(text) &&
-    !/(?:kerak\s*emas|shart\s*emas|istamayman|yuklamay|o'rnatmay)/i.test(text)
+    !/(?:kerak\s*emas|shart\s*emas|istamayman|yuklamay|o'rnatmay|bo'lsin|bolsin)/i.test(text)
   ) {
     let targetPlatform: 'windows' | 'mac' | 'android' = 'windows';
     if (/(?:android|telefon|phone|samsung|redmi|xiaomi|apk)/i.test(text)) {
@@ -201,24 +290,16 @@ export function parseUzbekCommand(rawInput: string): ParseResult {
     };
   }
 
-  // Check if user says they don't want to download anything or asks about installing software:
-  if (
-    /(?:yuklam(?:oqchi|ayman|asdan|asam|ay|a)|o'rnatm(?:oqchi|ayman|asdan|asam|ay|a)|unaqa narsa|kerak emas)/i.test(text) &&
-    /(?:yukla|o'rnat|narsa|dastur|terminal|agent|skript|lozim|shart)/i.test(text)
-  ) {
-    return {
-      recognized: false,
-      error: "Mutlaqo to'g'ri, hech qanday dastur yoki agent yuklab olishingiz shart emas!\n\nJARVIS to'liq brauzeringizning o'zida ishlaydi. Fayl yaratish buyrug'ini bersangiz (masalan: 'test.txt yarat' yoki 'Desktopda salom.txt yarat ichiga Salom deb yoz'), u bir zumda yaratiladi va to'g'ridan-to'g'ri kompyuteringizga (Downloads papkangizga) avtomatik yuklab beriladi.\n\nSizdan faqat nima yaratishni aytish so'raladi, masalan: 'test.txt yarat' deb yozib ko'ring!",
-      source: 'local_parser',
-    };
-  }
-
   // Check for informational macOS or system inquiries without blocking:
   if (/(?:menda\s+)?(?:macos|mac\s*os|mac|macbook|apple)/i.test(text) && /(?:ishlaydimi|ishlay oladimi|mumkinmi|bo'ladimi|tushunadimi)/i.test(text)) {
     return {
-      recognized: false,
-      error: "Ha, albatta! Apple macOS tizimi to'liq qo'llab-quvvatlanadi. Hech qanday dastur yuklamasdan, to'g'ridan-to'g'ri brauzer orqali 'test.txt yarat' yoki 'Ish stolimda salom.txt och' deb buyruq beravering. Fayllar avtomatik tarzda Mac kompyuteringizga saqlanadi!",
+      recognized: true,
       source: 'local_parser',
+      intentDescription: "macOS qo'llab-quvvatlash",
+      action: {
+        action: 'chat_reply',
+        reply: "Ha, albatta! Apple macOS tizimi to'liq qo'llab-quvvatlanadi. Hech qanday dastur yuklamasdan, to'g'ridan-to'g'ri brauzer yoki o'rnatilgan ilova orqali 'youtubega kir', 'test.txt yarat' yoki 'fayllarni ko'rsat' deb buyruq beravering. Hammasi bir zumda ishlaydi!",
+      },
     };
   }
 
@@ -736,6 +817,10 @@ export function parseUzbekCommand(rawInput: string): ParseResult {
  * e.g. "Albatta. Ish stolingizda test.txt faylini yarataman."
  */
 export function getUzbekPromptMessage(action: SafeAction): string {
+  if (action.action === 'chat_reply') {
+    return action.reply;
+  }
+
   if (action.action === 'open_website') {
     return `Albatta. ${action.title} ochilmoqda.`;
   }
@@ -745,7 +830,7 @@ export function getUzbekPromptMessage(action: SafeAction): string {
     return `Albatta. JARVIS ilovasini ${platformName} yuklab olish va o'rnatish oynasini ochyapman.`;
   }
 
-  const locUz = getLocationUzbekName(action.location);
+  const locUz = 'location' in action ? getLocationUzbekName(action.location) : 'Ish stoli';
 
   switch (action.action) {
     case 'create_file':

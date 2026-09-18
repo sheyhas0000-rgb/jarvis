@@ -73,6 +73,11 @@ export interface OpenDownloadModalAction {
   targetPlatform?: 'windows' | 'mac' | 'android';
 }
 
+export interface ChatReplyAction {
+  action: 'chat_reply';
+  reply: string;
+}
+
 export type SafeAction =
   | CreateFileAction
   | CreateFolderAction
@@ -82,13 +87,16 @@ export type SafeAction =
   | RenameFileAction
   | DeleteFileAction
   | OpenWebsiteAction
-  | OpenDownloadModalAction;
+  | OpenDownloadModalAction
+  | ChatReplyAction;
 
 export interface ParseResult {
   recognized: boolean;
   action?: SafeAction;
   intentDescription?: string;
   error?: string;
+  isConversational?: boolean;
+  reply?: string;
   requiresConfirmation?: boolean;
   confirmationMessage?: string;
   source: 'local_parser' | 'ai_parser';
