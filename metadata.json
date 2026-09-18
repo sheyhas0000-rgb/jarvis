@@ -1,0 +1,6 @@
+{
+  "name": "JARVIS Windows Yordamchisi",
+  "description": "Windows, macOS va Android uchun o'zbek tilidagi yozma va ovozli aqlli kompyuter yordamchisi",
+  "requestFramePermissions": ["microphone"],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
