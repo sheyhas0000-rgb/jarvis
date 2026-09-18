@@ -1,14 +1,4 @@
-/**
- * Standalone Single-File JARVIS HTML Generator.
- * 100% matches the futuristic Iron Man / Stark Industries HUD online design.
- * Complete with rotating Arc Reactor holographic rings, audio canvas visualizer,
- * Uzbek NLP engine, virtual file system, YouTube modal player, web launchers,
- * Web Speech API recognition & speech synthesis, and Web Audio API sci-fi sound synthesizer.
- * Runs completely standalone in any browser with zero dependencies, 100% offline, with no 403 errors.
- */
-
-export function generateOfflineAppHtml(): string {
-  return `<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="uz">
 <head>
   <meta charset="UTF-8">
@@ -586,9 +576,9 @@ export function generateOfflineAppHtml(): string {
             </div>
           </div>
           <div class="flex items-center gap-2">
-            <button onclick="openFileInViewer('\${file.name}')" class="px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-cyan-300 text-xs font-chakra">Ochish</button>
-            <button onclick="downloadFileToPc('\${file.name}', '\${encodeURIComponent(file.content)}')" class="px-2 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs">💾</button>
-            <button onclick="deleteVirtualFile('\${file.name}')" class="px-2 py-1 rounded-lg bg-rose-950/40 hover:bg-rose-900/60 text-rose-400 text-xs border border-rose-500/20">🗑️</button>
+            <button onclick="openFileInViewer('\${file.name}')" class="px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-cyan-300 text-xs font-chakra cursor-pointer">Ochish</button>
+            <button onclick="downloadFileToPc('\${file.name}', '\${encodeURIComponent(file.content)}')" class="px-2 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs cursor-pointer">💾</button>
+            <button onclick="deleteVirtualFile('\${file.name}')" class="px-2 py-1 rounded-lg bg-rose-950/40 hover:bg-rose-900/60 text-rose-400 text-xs border border-rose-500/20 cursor-pointer">🗑️</button>
           </div>
         \`;
         container.appendChild(item);
@@ -794,8 +784,8 @@ export function generateOfflineAppHtml(): string {
               <p class="text-[11px] text-emerald-400">Windows keshini tozalovchi tayyor skript</p>
             </div>
             <div class="flex items-center gap-2">
-              <button onclick="openFileInViewer('optimizatsiya.bat')" class="px-2.5 py-1 rounded-lg bg-slate-800 text-cyan-300 text-xs">Ko'rish</button>
-              <button onclick="downloadFileToPc('optimizatsiya.bat', \`\${batCode}\`)" class="px-3 py-1 rounded-lg bg-cyan-500 text-slate-950 font-bold text-xs font-chakra">Yuklab olish</button>
+              <button onclick="openFileInViewer('optimizatsiya.bat')" class="px-2.5 py-1 rounded-lg bg-slate-800 text-cyan-300 text-xs cursor-pointer">Ko'rish</button>
+              <button onclick="downloadFileToPc('optimizatsiya.bat', \`\${batCode}\`)" class="px-3 py-1 rounded-lg bg-cyan-500 text-slate-950 font-bold text-xs font-chakra cursor-pointer">Yuklab olish</button>
             </div>
           </div>
         \`;
@@ -825,8 +815,8 @@ export function generateOfflineAppHtml(): string {
               <p class="text-[11px] text-cyan-400">Virtual xotirada saqlandi • Ortiqcha narsa yuklanmaydi</p>
             </div>
             <div class="flex items-center gap-2">
-              <button onclick="openFileInViewer('\${fileName}')" class="px-2.5 py-1 rounded-lg bg-cyan-600 hover:bg-cyan-500 text-white font-chakra text-xs font-bold">Ko'rish / Tahrirlash</button>
-              <button onclick="downloadFileToPc('\${fileName}', '\${encodeURIComponent(content)}')" class="px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs">Yuklab olish (Ixtiyoriy)</button>
+              <button onclick="openFileInViewer('\${fileName}')" class="px-2.5 py-1 rounded-lg bg-cyan-600 hover:bg-cyan-500 text-white font-chakra text-xs font-bold cursor-pointer">Ko'rish / Tahrirlash</button>
+              <button onclick="downloadFileToPc('\${fileName}', '\${encodeURIComponent(content)}')" class="px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs cursor-pointer">Yuklab olish (Ixtiyoriy)</button>
             </div>
           </div>
         \`;
@@ -1006,18 +996,4 @@ export function generateOfflineAppHtml(): string {
     }, 400);
   </script>
 </body>
-</html>`;
-}
-
-export function downloadOfflineAppHtml(fileName: string = 'jarvis.html') {
-  const content = generateOfflineAppHtml();
-  const blob = new Blob([content], { type: 'text/html;charset=utf-8' });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = fileName;
-  document.body.appendChild(a);
-  a.click();
-  document.body.removeChild(a);
-  URL.revokeObjectURL(url);
-}
+</html>

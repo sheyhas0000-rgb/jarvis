@@ -408,12 +408,20 @@ export const ChatDialogue: React.FC<ChatDialogueProps> = ({
 
                       <div className="pt-2 border-t border-slate-800/80 flex flex-wrap items-center justify-between gap-2">
                         <button
-                          onClick={() => downloadOfflineAppHtml()}
+                          onClick={() => downloadOfflineAppHtml('jarvis.html')}
                           className="flex-1 flex items-center justify-center gap-2 py-2 px-3 rounded-lg bg-cyan-500/20 hover:bg-cyan-500/30 text-cyan-300 border border-cyan-500/40 text-xs font-semibold transition-all cursor-pointer shadow-sm"
                         >
                           <Download className="w-3.5 h-3.5 text-cyan-400" />
-                          <span>⚡ 100% Oflayn Ilova (.html) ni yuklab olish (403 xatosisiz)</span>
+                          <span>⚡ jarvis.html ni yuklab olish (Original dizayn)</span>
                         </button>
+                        <a
+                          href="/jarvis.html"
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="px-3 py-2 rounded-lg bg-slate-900 hover:bg-slate-800 text-cyan-400 border border-slate-800 text-xs font-semibold transition-all flex items-center gap-1"
+                        >
+                          <span>Ochish ↗</span>
+                        </a>
                       </div>
 
                       <div className="grid grid-cols-3 gap-2 pt-1">

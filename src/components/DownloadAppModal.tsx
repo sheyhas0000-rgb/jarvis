@@ -163,13 +163,23 @@ export const DownloadAppModal: React.FC<DownloadAppModalProps> = ({ isOpen, onCl
                     </div>
                   </div>
 
-                  <button
-                    onClick={() => downloadOfflineAppHtml()}
-                    className="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-bold text-xs sm:text-sm shadow-[0_0_15px_rgba(6,182,212,0.4)] transition-all cursor-pointer"
-                  >
-                    <Download className="w-4.5 h-4.5" />
-                    <span>JARVIS-Oflayn-Ilova.html ni yuklab olish (Tavsiya etiladi)</span>
-                  </button>
+                  <div className="flex flex-col sm:flex-row gap-2">
+                    <button
+                      onClick={() => downloadOfflineAppHtml('jarvis.html')}
+                      className="flex-1 flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-bold text-xs sm:text-sm shadow-[0_0_15px_rgba(6,182,212,0.4)] transition-all cursor-pointer"
+                    >
+                      <Download className="w-4 h-4" />
+                      <span>jarvis.html ni yuklab olish</span>
+                    </button>
+                    <a
+                      href="/jarvis.html"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex items-center justify-center gap-1.5 px-4 py-3 rounded-xl bg-slate-800 hover:bg-slate-700 text-cyan-300 font-bold text-xs sm:text-sm border border-cyan-500/40 transition-all"
+                    >
+                      <span>Brauzerda sinab ko'rish ↗</span>
+                    </a>
+                  </div>
                 </div>
 
                 {/* Option 2: 1-Click Native Desktop App Install via current browser */}
@@ -296,13 +306,23 @@ export const DownloadAppModal: React.FC<DownloadAppModalProps> = ({ isOpen, onCl
                         <span>ANDROIDGA O'RNATISH</span>
                       </button>
                     ) : (
-                      <button
-                        onClick={() => downloadOfflineAppHtml()}
-                        className="w-full mt-2 flex items-center justify-center gap-2 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-emerald-400 border border-emerald-500/40 font-bold text-xs transition-all cursor-pointer"
-                      >
-                        <Download className="w-4 h-4" />
-                        <span>JARVIS-Oflayn-Ilova.html ni telefonga yuklab olish</span>
-                      </button>
+                      <div className="flex flex-col sm:flex-row gap-2 mt-2">
+                        <button
+                          onClick={() => downloadOfflineAppHtml('jarvis.html')}
+                          className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-emerald-400 border border-emerald-500/40 font-bold text-xs transition-all cursor-pointer"
+                        >
+                          <Download className="w-4 h-4" />
+                          <span>jarvis.html ni yuklab olish</span>
+                        </button>
+                        <a
+                          href="/jarvis.html"
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="flex items-center justify-center gap-1.5 py-2.5 px-3 rounded-xl bg-slate-900 text-cyan-300 border border-slate-700 font-bold text-xs"
+                        >
+                          <span>Ochish ↗</span>
+                        </a>
+                      </div>
                     )}
                   </div>
                 </div>
@@ -334,13 +354,23 @@ export const DownloadAppModal: React.FC<DownloadAppModalProps> = ({ isOpen, onCl
                     </div>
                   </div>
 
-                  <button
-                    onClick={() => downloadOfflineAppHtml()}
-                    className="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-purple-500 hover:bg-purple-400 text-slate-950 font-bold text-xs sm:text-sm shadow-[0_0_15px_rgba(168,85,247,0.4)] transition-all cursor-pointer"
-                  >
-                    <Download className="w-4.5 h-4.5" />
-                    <span>JARVIS-Oflayn-Ilova.html ni Mac-ga yuklab olish (Tavsiya etiladi)</span>
-                  </button>
+                  <div className="flex flex-col sm:flex-row gap-2">
+                    <button
+                      onClick={() => downloadOfflineAppHtml('jarvis.html')}
+                      className="flex-1 flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-purple-500 hover:bg-purple-400 text-slate-950 font-bold text-xs sm:text-sm shadow-[0_0_15px_rgba(168,85,247,0.4)] transition-all cursor-pointer"
+                    >
+                      <Download className="w-4 h-4" />
+                      <span>jarvis.html ni Mac-ga yuklab olish</span>
+                    </button>
+                    <a
+                      href="/jarvis.html"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex items-center justify-center gap-1.5 px-4 py-3 rounded-xl bg-slate-800 hover:bg-slate-700 text-purple-300 font-bold text-xs sm:text-sm border border-purple-500/40 transition-all"
+                    >
+                      <span>Ochish ↗</span>
+                    </a>
+                  </div>
                 </div>
 
                 {/* 2. Native macOS .webloc shortcut */}

@@ -394,6 +394,27 @@ function getGeminiClient(): GoogleGenAI | null {
   return aiClient;
 }
 
+// Direct serving and download for standalone jarvis.html
+app.get('/jarvis.html', (req, res) => {
+  const localPublic = path.join(process.cwd(), 'public', 'jarvis.html');
+  if (fs.existsSync(localPublic)) {
+    return res.sendFile(localPublic);
+  }
+  const distFile = path.join(process.cwd(), 'dist', 'jarvis.html');
+  if (fs.existsSync(distFile)) {
+    return res.sendFile(distFile);
+  }
+  res.status(404).send('jarvis.html topilmadi');
+});
+
+app.get('/api/download/jarvis.html', (req, res) => {
+  const localPublic = path.join(process.cwd(), 'public', 'jarvis.html');
+  if (fs.existsSync(localPublic)) {
+    return res.download(localPublic, 'jarvis.html');
+  }
+  res.status(404).send('jarvis.html topilmadi');
+});
+
 app.post('/api/ai-parse', async (req, res) => {
   const { prompt } = req.body;
   if (!prompt || typeof prompt !== 'string') {
