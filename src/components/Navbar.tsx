@@ -22,34 +22,71 @@ export const Navbar: React.FC<NavbarProps> = ({
   allowedLocations,
 }) => {
   const activePermissionsCount = Object.values(allowedLocations).filter(Boolean).length;
-  const isClientMac = typeof navigator !== 'undefined' && /Macintosh|Mac OS/i.test(navigator.userAgent);
 
   return (
-    <header className="border-b border-cyan-900/30 bg-slate-950/80 backdrop-blur-md sticky top-0 z-40 px-4 lg:px-8 py-3">
-      <div className="max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-4">
+    <header className="border-b border-cyan-900/30 bg-slate-950/85 backdrop-blur-md sticky top-0 z-40 px-3 sm:px-6 py-2.5 sm:py-3 pt-safe">
+      <div className="max-w-7xl mx-auto flex items-center justify-between gap-2 sm:gap-4">
         {/* Brand & Subtitle */}
-        <div className="flex items-center gap-3">
-          <div className="relative flex items-center justify-center w-10 h-10 rounded-xl bg-cyan-950/80 border border-cyan-500/40 text-cyan-400 shadow-[0_0_15px_rgba(6,182,212,0.25)]">
-            <Cpu className="w-5 h-5 animate-pulse text-cyan-400" />
+        <div className="flex items-center gap-2.5 sm:gap-3 min-w-0">
+          <div className="relative flex items-center justify-center w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-cyan-950/80 border border-cyan-500/40 text-cyan-400 shadow-[0_0_15px_rgba(6,182,212,0.25)] shrink-0">
+            <Cpu className="w-4 h-4 sm:w-5 sm:h-5 animate-pulse text-cyan-400" />
             <div className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 bg-emerald-400 rounded-full ring-2 ring-slate-950"></div>
           </div>
-          <div>
-            <div className="flex items-center gap-2">
-              <h1 className="text-xl font-bold tracking-widest text-transparent bg-clip-text bg-gradient-to-r from-cyan-300 via-sky-200 to-indigo-300 font-['Chakra_Petch']">
+          <div className="min-w-0">
+            <div className="flex items-center gap-1.5 sm:gap-2">
+              <h1 className="text-lg sm:text-xl font-bold tracking-widest text-transparent bg-clip-text bg-gradient-to-r from-cyan-300 via-sky-200 to-indigo-300 font-['Chakra_Petch'] truncate">
                 JARVIS
               </h1>
-              <span className="inline-flex items-center px-2 py-0.5 text-xs font-medium rounded-full bg-emerald-950/70 border border-emerald-600/40 text-emerald-400">
-                🟢 JARVIS ishlayapti
+              <span className="hidden sm:inline-flex items-center px-2 py-0.5 text-[11px] font-medium rounded-full bg-emerald-950/70 border border-emerald-600/40 text-emerald-400">
+                🟢 JARVIS faol
               </span>
+              <span className="sm:hidden inline-block w-2 h-2 rounded-full bg-emerald-400 animate-pulse" title="JARVIS faol" />
             </div>
-            <p className="text-xs text-slate-400 font-medium">
-              Shaxsiy yordamchingiz (Windows, Mac & Android)
+            <p className="text-[10px] sm:text-xs text-slate-400 font-medium truncate">
+              <span className="hidden sm:inline">Shaxsiy yordamchingiz (</span>Windows, Mac & Android<span className="hidden sm:inline">)</span>
             </p>
           </div>
         </div>
 
-        {/* Agent Connectivity status & Controls */}
-        <div className="flex items-center flex-wrap gap-2.5">
+        {/* Mobile quick actions (sm:hidden) */}
+        <div className="flex sm:hidden items-center gap-1.5 shrink-0">
+          {/* Mobile voice toggle */}
+          <button
+            onClick={onToggleVoiceFeedback}
+            title={isVoiceFeedbackEnabled ? "Ovozli javob: Yoqilgan" : "Ovozli javob: O'chiq"}
+            className={`flex items-center justify-center w-8 h-8 rounded-lg border transition-colors cursor-pointer active:scale-90 ${
+              isVoiceFeedbackEnabled
+                ? 'bg-cyan-950/80 border-cyan-500/50 text-cyan-300'
+                : 'bg-slate-900 border-slate-800 text-slate-400'
+            }`}
+          >
+            {isVoiceFeedbackEnabled ? <Volume2 className="w-4 h-4 text-cyan-300" /> : <VolumeX className="w-4 h-4 text-slate-500" />}
+          </button>
+
+          {/* Mobile download / APK modal button */}
+          {onOpenDownload && (
+            <button
+              onClick={onOpenDownload}
+              title="Ilovani o'rnatish (Telefon & Kompyuter)"
+              className="flex items-center gap-1 px-2 py-1.5 rounded-lg text-xs font-bold bg-cyan-600 hover:bg-cyan-500 text-white shadow-sm border border-cyan-400/40 active:scale-95 cursor-pointer"
+            >
+              <Download className="w-3.5 h-3.5" />
+              <span className="text-[11px]">Ilova</span>
+            </button>
+          )}
+
+          {/* Mobile permissions button */}
+          <button
+            onClick={onOpenPermissions}
+            title="Xavfsizlik va ruxsatlar"
+            className="flex items-center justify-center w-8 h-8 rounded-lg bg-slate-900 border border-slate-800 text-slate-300 hover:text-cyan-300 active:scale-90"
+          >
+            <ShieldCheck className="w-4 h-4 text-cyan-400" />
+          </button>
+        </div>
+
+        {/* Desktop Controls (hidden sm:flex) */}
+        <div className="hidden sm:flex items-center flex-wrap gap-2.5">
           {/* Download & Install App (Windows .exe, Mac, Android) */}
           {onOpenDownload && (
             <button
@@ -59,7 +96,7 @@ export const Navbar: React.FC<NavbarProps> = ({
             >
               <Download className="w-3.5 h-3.5" />
               <span>Yuklab olish</span>
-              <span className="hidden sm:inline-block px-1.5 py-0.2 rounded bg-black/30 text-[10px] text-cyan-200">
+              <span className="px-1.5 py-0.2 rounded bg-black/30 text-[10px] text-cyan-200">
                 Win / Mac / Android
               </span>
             </button>
@@ -80,9 +117,9 @@ export const Navbar: React.FC<NavbarProps> = ({
               <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
             </span>
             {agentStatus?.connected ? (
-              <span>Local Agent: 127.0.0.1:8765 ({agentStatus.username})</span>
+              <span>Mahalliy Agent: 127.0.0.1:8765 ({agentStatus.username})</span>
             ) : (
-              <span>Brauzerda faol • Hech narsa yuklash shart emas</span>
+              <span>Brauzerda faol • Mustaqil</span>
             )}
             <Terminal className="w-3.5 h-3.5 opacity-60 ml-0.5" />
           </button>
@@ -123,7 +160,7 @@ export const Navbar: React.FC<NavbarProps> = ({
           <button
             onClick={onOpenSetup}
             className="p-2 rounded-lg text-xs font-medium bg-slate-900/60 border border-slate-800 text-slate-400 hover:text-cyan-400 transition-colors"
-            title="Qo'llanma va start-jarvis.bat"
+            title="Qo'llanma va ma'lumot"
           >
             <Terminal className="w-4 h-4" />
           </button>

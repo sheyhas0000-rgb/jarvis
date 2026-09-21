@@ -34,10 +34,10 @@ export const FuturisticOrb: React.FC<FuturisticOrbProps> = ({
 
   if (compact) {
     return (
-      <div className="w-full max-w-4xl mx-auto px-4 my-2">
+      <div className="w-full max-w-4xl mx-auto px-2 sm:px-4 my-1 sm:my-2">
         <div 
           onClick={onOrbClick}
-          className="relative flex items-center justify-between gap-3 p-3 rounded-2xl bg-slate-900/80 border border-slate-800 backdrop-blur-md cursor-pointer hover:border-cyan-500/40 transition-all shadow-md overflow-hidden"
+          className="relative flex items-center justify-between gap-2 sm:gap-3 p-2.5 sm:p-3 rounded-2xl bg-slate-900/85 border border-slate-800 backdrop-blur-md cursor-pointer hover:border-cyan-500/40 transition-all shadow-md overflow-hidden"
         >
           {/* Subtle top indicator bar */}
           <div className={`absolute top-0 left-0 right-0 h-0.5 ${
@@ -48,35 +48,35 @@ export const FuturisticOrb: React.FC<FuturisticOrbProps> = ({
           }`} />
 
           {/* Left: Mini reactor core */}
-          <div className="flex items-center gap-3">
-            <div className="relative flex items-center justify-center w-10 h-10 rounded-xl bg-slate-950 border border-cyan-500/40 shrink-0">
+          <div className="flex items-center gap-2.5 sm:gap-3 min-w-0">
+            <div className="relative flex items-center justify-center w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-slate-950 border border-cyan-500/40 shrink-0">
               <motion.div
                 animate={{ rotate: 360 }}
                 transition={{ duration: 15, repeat: Infinity, ease: 'linear' }}
                 className="absolute inset-0 rounded-xl border border-dashed border-cyan-400/30"
               />
               {status === 'listening' ? (
-                <Mic className="w-5 h-5 text-cyan-400 animate-bounce" />
+                <Mic className="w-4 h-4 sm:w-5 sm:h-5 text-cyan-400 animate-bounce" />
               ) : status === 'processing' ? (
-                <Activity className="w-5 h-5 text-amber-400 animate-spin" />
+                <Activity className="w-4 h-4 sm:w-5 sm:h-5 text-amber-400 animate-spin" />
               ) : status === 'success' ? (
-                <CheckCircle2 className="w-5 h-5 text-emerald-400" />
+                <CheckCircle2 className="w-4 h-4 sm:w-5 sm:h-5 text-emerald-400" />
               ) : status === 'error' ? (
-                <AlertCircle className="w-5 h-5 text-rose-400" />
+                <AlertCircle className="w-4 h-4 sm:w-5 sm:h-5 text-rose-400" />
               ) : (
-                <div className="w-3 h-3 rounded-full bg-cyan-400 shadow-[0_0_8px_rgba(6,182,212,0.8)]" />
+                <div className="w-2.5 h-2.5 sm:w-3 sm:h-3 rounded-full bg-cyan-400 shadow-[0_0_8px_rgba(6,182,212,0.8)]" />
               )}
             </div>
 
-            <div>
-              <div className="flex items-center gap-2">
-                <span className="text-xs font-bold uppercase tracking-widest text-cyan-300 font-['Chakra_Petch']">
-                  JARVIS CORE
+            <div className="min-w-0">
+              <div className="flex items-center gap-1.5 sm:gap-2">
+                <span className="text-[11px] sm:text-xs font-bold uppercase tracking-widest text-cyan-300 font-['Chakra_Petch']">
+                  JARVIS
                 </span>
                 {isVoiceActive && (
-                  <span className="flex items-center gap-1 text-[10px] text-rose-400 font-mono animate-pulse">
+                  <span className="flex items-center gap-1 text-[9px] sm:text-[10px] text-rose-400 font-mono animate-pulse">
                     <span className="w-1.5 h-1.5 rounded-full bg-rose-500"></span>
-                    MIKROFON FAOL
+                    OVOZ FAOL
                   </span>
                 )}
               </div>
@@ -84,7 +84,7 @@ export const FuturisticOrb: React.FC<FuturisticOrbProps> = ({
                 key={statusText}
                 initial={{ opacity: 0, y: 2 }}
                 animate={{ opacity: 1, y: 0 }}
-                className="text-xs font-medium text-slate-300 truncate max-w-xs sm:max-w-md"
+                className="text-[11px] sm:text-xs font-medium text-slate-300 truncate max-w-[170px] xs:max-w-[220px] sm:max-w-md"
               >
                 {statusText}
               </motion.p>

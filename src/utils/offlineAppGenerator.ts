@@ -197,7 +197,7 @@ export function generateOfflineAppHtml(): string {
           <button onclick="runCommand('instagramga kir')" class="px-2.5 py-1 rounded-lg bg-slate-900 hover:bg-cyan-500/20 text-slate-300 hover:text-cyan-300 border border-slate-800 transition-all cursor-pointer">📸 Instagram</button>
           <button onclick="runCommand('Desktopda test.txt yarat')" class="px-2.5 py-1 rounded-lg bg-slate-900 hover:bg-cyan-500/20 text-slate-300 hover:text-cyan-300 border border-slate-800 transition-all cursor-pointer">📄 test.txt yarat</button>
           <button onclick="runCommand('fayllarni och')" class="px-2.5 py-1 rounded-lg bg-slate-900 hover:bg-cyan-500/20 text-slate-300 hover:text-cyan-300 border border-slate-800 transition-all cursor-pointer">📂 Fayllar</button>
-          <button onclick="runCommand('optimizatsiya.bat yarat')" class="px-2.5 py-1 rounded-lg bg-slate-900 hover:bg-cyan-500/20 text-slate-300 hover:text-cyan-300 border border-slate-800 transition-all cursor-pointer">⚡ Kesh tozalash</button>
+          <button onclick="clearChatScreen()" class="px-2.5 py-1 rounded-lg bg-slate-900 hover:bg-rose-500/20 text-slate-300 hover:text-rose-300 border border-slate-800 transition-all cursor-pointer">🧹 Ekranni tozalash</button>
         </div>
       </div>
     </div>
@@ -815,18 +815,19 @@ export function generateOfflineAppHtml(): string {
         if (matchContent) content = matchContent[1];
 
         createVirtualFile(fileName, content);
-        setOrbStatus('success', fileName + ' yaratildi');
+        downloadFileToPc(fileName, content);
+        setOrbStatus('success', fileName + ' yaratildi va yuklandi');
         playSciFiSound('success');
-        const reply = "Albatta. Ish stoli xotirasida '" + fileName + "' fayli yaratildi.";
+        const reply = "Albatta. '" + fileName + "' fayli yaratildi va kompyuteringizga avtomatik yuklandi.";
         const extra = \`
           <div class="p-3 rounded-xl bg-slate-950 border border-cyan-500/40 flex items-center justify-between flex-wrap gap-2">
             <div>
               <p class="font-bold text-slate-200 font-mono text-xs">📄 \${fileName}</p>
-              <p class="text-[11px] text-cyan-400">Virtual xotirada saqlandi • Ortiqcha narsa yuklanmaydi</p>
+              <p class="text-[11px] text-emerald-400">✓ Kompyuteringizga avtomatik yuklandi va saqlandi</p>
             </div>
             <div class="flex items-center gap-2">
               <button onclick="openFileInViewer('\${fileName}')" class="px-2.5 py-1 rounded-lg bg-cyan-600 hover:bg-cyan-500 text-white font-chakra text-xs font-bold">Ko'rish / Tahrirlash</button>
-              <button onclick="downloadFileToPc('\${fileName}', '\${encodeURIComponent(content)}')" class="px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs">Yuklab olish (Ixtiyoriy)</button>
+              <button onclick="downloadFileToPc('\${fileName}', '\${encodeURIComponent(content)}')" class="px-2.5 py-1 rounded-lg bg-cyan-950/80 hover:bg-cyan-900/80 text-cyan-300 border border-cyan-500/40 text-xs">Qayta yuklab olish</button>
             </div>
           </div>
         \`;

@@ -188,9 +188,9 @@ app.post('/api/sandbox/execute', (req, res) => {
         });
       }
       const fileItem = list.find(i => i.name.toLowerCase() === name.toLowerCase())!;
-      let successMsg = `✅ Tayyor! ${location === 'Desktop' ? 'Ish stolingizda' : location + 'da'} "${name}" fayli yaratildi va kompyuteringizga saqlandi.`;
+      let successMsg = `✅ Tayyor, ser! ${location === 'Desktop' ? 'Ish stolingizda' : location + 'da'} "${name}" fayli yaratildi va kompyuteringizga avtomatik yuklandi.`;
       if (name.toLowerCase().includes('optimizats') || name.toLowerCase().includes('tozalash') || name.toLowerCase().endsWith('.bat')) {
-        successMsg = `✅ Tayyor! "${name}" optimizatsiya skripti muvaffaqiyatli yaratildi va kompyuteringizga saqlandi.\n\n⚡ Ushbu fayl:\n1. User Temp (%temp%) papkasidagi barcha keraksiz fayllarni tozalaydi\n2. Windows Temp tizim keshini tozalaydi\n3. Prefetch keshini tozalaydi\n4. Internet DNS keshini yangilab kompyuterni tezlashtiradi.`;
+        successMsg = `✅ Tayyor, ser! "${name}" skripti yaratildi va kompyuteringizga avtomatik yuklandi.\n\n⚡ Ushbu fayl kompyuteringiz keshini tozalash uchun tayyor.`;
       }
       return res.json({
         success: true,
@@ -220,7 +220,7 @@ app.post('/api/sandbox/execute', (req, res) => {
       }
       return res.json({
         success: true,
-        message: `✅ ${name} papkasi yaratildi.`,
+        message: `✅ Tayyor, ser! "${name}" papkasi yaratildi va kompyuteringizga avtomatik yuklandi.`,
         isRealWindows: false,
         path: getDisplayPath(name),
       });
@@ -251,12 +251,12 @@ app.post('/api/sandbox/execute', (req, res) => {
 
       const items = (currentItems.length > 0 || allItems.length === 0) ? currentItems : allItems;
 
-      let formatted = `${location === 'Desktop' ? 'Kompyuteringizda' : location + 'da'} ${items.length} ta fayl topildi:\n\n`;
+      let formatted = `Tayyor, ser! ${location === 'Desktop' ? 'Kompyuteringizda' : location + 'da'} ${items.length} ta fayl topildi:\n\n`;
       if (items.length === 0) {
-        formatted = `Hozircha kompyuteringizda birorta ham fayl yaratilmagan.\nFayl yaratish uchun, masalan: "test.txt yarat" yoki "optimizatsiya.bat yarat" deb buyruq bering.`;
+        formatted = `Hozircha kompyuteringizda birorta ham fayl yaratilmagan, ser.\nFayl yaratish uchun, masalan: "test.txt yarat" deb buyruq bering.`;
       } else {
         formatted += items.map(it => `${it.type === 'folder' ? '📁' : '📄'} ${it.name}${it.location && it.location !== location ? ` (${it.location})` : ''}`).join('\n');
-        formatted += `\n\n💡 Faylni ochish uchun: "${items[0]?.name || 'fayl'} faylini och" deb buyruq bering yoki quyidagi ro'yxatdan tanlang.`;
+        formatted += `\n\n💡 Faylni ochish uchun: "${items[0]?.name || 'fayl'} faylini och" deb buyruq bering, ser.`;
       }
 
       return res.json({
@@ -305,15 +305,15 @@ app.post('/api/sandbox/execute', (req, res) => {
         return res.json({
           success: false,
           message: targetName && targetName !== 'fayl'
-            ? `❌ "${targetName}" fayli kompyuteringizda topilmadi. Uni yaratish uchun: "${targetName} yarat" deb yozing.`
-            : `❌ Ochish uchun birorta fayl topilmadi. Avval "test.txt yarat" deb fayl yarating.`,
+            ? `❌ "${targetName}" fayli kompyuteringizda topilmadi, ser. Uni yaratish uchun: "${targetName} yarat" deb yozing.`
+            : `❌ Ochish uchun birorta fayl topilmadi, ser. Avval "test.txt yarat" deb fayl yarating.`,
           isRealWindows: false,
         });
       }
 
       return res.json({
         success: true,
-        message: `✅ "${item.name}" fayli ochildi (${foundLocation} papkasida).`,
+        message: `✅ Tayyor, ser! "${item.name}" fayli ochildi (${foundLocation} papkasida).`,
         isRealWindows: false,
         content: item.content || '',
         createdFile: {
@@ -328,7 +328,7 @@ app.post('/api/sandbox/execute', (req, res) => {
     case 'open_folder': {
       return res.json({
         success: true,
-        message: `✅ ${location === 'Desktop' ? 'Ish stoli' : location} papkasi ochildi (Virtual Sandbox).`,
+        message: `✅ Tayyor, ser! ${location === 'Desktop' ? 'Ish stoli' : location} papkasi ochildi.`,
         isRealWindows: false,
       });
     }
@@ -338,7 +338,7 @@ app.post('/api/sandbox/execute', (req, res) => {
       if (!item) {
         return res.json({
           success: false,
-          message: `❌ ${oldName} topilmadi.`,
+          message: `❌ ${oldName} topilmadi, ser.`,
           isRealWindows: false,
         });
       }
@@ -346,7 +346,7 @@ app.post('/api/sandbox/execute', (req, res) => {
       if (collision) {
         return res.json({
           success: false,
-          message: `❌ Fayl nomini o'zgartirib bo'lmadi.\nSabab: "${newName}" nomli fayl allaqachon mavjud.`,
+          message: `❌ Fayl nomini o'zgartirib bo'lmadi, ser.\nSabab: "${newName}" nomli fayl allaqachon mavjud.`,
           isRealWindows: false,
         });
       }
@@ -354,7 +354,7 @@ app.post('/api/sandbox/execute', (req, res) => {
       item.modifiedAt = new Date().toISOString();
       return res.json({
         success: true,
-        message: `✅ Fayl nomi ${newName} qilib o‘zgartirildi.`,
+        message: `✅ Bajarildi, ser! Fayl nomi ${newName} qilib o‘zgartirildi.`,
         isRealWindows: false,
       });
     }
@@ -364,14 +364,14 @@ app.post('/api/sandbox/execute', (req, res) => {
       if (idx === -1) {
         return res.json({
           success: false,
-          message: `❌ ${name} topilmadi.`,
+          message: `❌ ${name} topilmadi, ser.`,
           isRealWindows: false,
         });
       }
       list.splice(idx, 1);
       return res.json({
         success: true,
-        message: `✅ ${name} muvaffaqiyatli o'chirildi.`,
+        message: `✅ Bajarildi, ser! ${name} muvaffaqiyatli o'chirildi.`,
         isRealWindows: false,
       });
     }

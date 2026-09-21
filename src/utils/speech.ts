@@ -125,4 +125,39 @@ export class SpeechHandler {
       console.warn('Speech synthesis xatosi:', err);
     }
   }
+
+  /**
+   * Generates a subtle sci-fi futuristic audio beep using Web Audio API
+   */
+  public static playBeep(type: 'click' | 'clear' | 'action' = 'click') {
+    if (typeof window === 'undefined') return;
+    try {
+      const AudioCtx = window.AudioContext || (window as any).webkitAudioContext;
+      if (!AudioCtx) return;
+      const ctx = new AudioCtx();
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+
+      if (type === 'clear') {
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(320, ctx.currentTime);
+        osc.frequency.exponentialRampToValueAtTime(160, ctx.currentTime + 0.15);
+        gain.gain.setValueAtTime(0.12, ctx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.15);
+        osc.start();
+        osc.stop(ctx.currentTime + 0.15);
+      } else {
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(type === 'action' ? 880 : 540, ctx.currentTime);
+        gain.gain.setValueAtTime(0.08, ctx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.08);
+        osc.start();
+        osc.stop(ctx.currentTime + 0.08);
+      }
+    } catch (e) {
+      // AudioContext might be muted or not allowed
+    }
+  }
 }

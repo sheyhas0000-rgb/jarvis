@@ -1,25 +1,48 @@
 /**
  * Utility to download files directly to the user's Mac / PC via standard browser API.
- * No external agent or downloads required!
+ * Whenever the user asks to create a file or folder ('yarat'), this immediately downloads
+ * the file directly to their local machine.
  */
 export function downloadFileToComputer(fileName: string, content: string = ''): boolean {
   try {
     if (typeof window === 'undefined') return false;
-    const blob = new Blob([content || ''], { type: 'text/plain;charset=utf-8' });
+    const cleanFileName = fileName ? fileName.replace(/^.*[\\\/]/, '').trim() : 'yangi_hujjat.txt';
+    const finalContent =
+      content && content.trim().length > 0
+        ? content
+        : `JARVIS tomonidan yaratilgan hujjat: ${cleanFileName}\nVaqt: ${new Date().toLocaleString('uz-UZ')}\nHolat: Muvaffaqiyatli yuklandi.\n`;
+
+    const blob = new Blob([finalContent], { type: 'text/plain;charset=utf-8' });
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
     link.href = url;
-    link.download = fileName;
+    link.download = cleanFileName;
+    link.rel = 'noopener';
     link.style.display = 'none';
     document.body.appendChild(link);
-    link.click();
+
+    // Trigger download
+    if (typeof link.click === 'function') {
+      link.click();
+    } else {
+      link.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true, view: window }));
+    }
+
     setTimeout(() => {
-      document.body.removeChild(link);
-      URL.revokeObjectURL(url);
-    }, 400);
+      try {
+        if (document.body.contains(link)) {
+          document.body.removeChild(link);
+        }
+        URL.revokeObjectURL(url);
+      } catch {
+        // cleanup ignore
+      }
+    }, 600);
+
     return true;
   } catch (err) {
     console.warn('Faylni yuklab olishda xatolik:', err);
     return false;
   }
 }
+

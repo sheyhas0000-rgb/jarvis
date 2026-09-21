@@ -79,24 +79,23 @@ export const ChatDialogue: React.FC<ChatDialogueProps> = ({
   };
 
   const starterPrompts = [
+    { text: "papkalarimni ko'rsat", label: "📁 Papkalarni ko'rish" },
+    { text: 'yangi fayl yarat', label: '➕ Yangi fayl yaratish' },
+    { text: 'ekranni tozalash', label: '🧹 Ekranni tozalash' },
     { text: 'salom', label: '👋 Salomlashish' },
     { text: 'sen kimsan', label: '🤖 JARVIS haqida' },
     { text: 'youtubega kir', label: '▶️ YouTube' },
     { text: 'telegramga kir', label: '✈️ Telegram' },
-    { text: 'instagramga kir', label: '📸 Instagram' },
     { text: 'chatgptga kir', label: '🤖 ChatGPT' },
-    { text: 'Desktopda test.txt yarat', label: '📄 Fayl yaratish' },
+    { text: 'Desktopda test.txt yarat', label: '📄 Test fayli' },
     { text: 'Desktopda salom.txt yarat ichiga Salom dunyo deb yoz', label: '✍️ Matn bilan fayl' },
     { text: 'fayllarni och', label: '📂 Fayllarni ochish' },
-    { text: 'test.txt faylini och', label: '👁️ Faylni ko‘rish' },
-    { text: 'optimizatsiya.bat yarat', label: '⚡ Kesh tozalash skripti' },
-    { text: 'har hil narsalar yuklash kerakmi', label: '💡 O‘rnatish va yuklashlar haqida' },
   ];
 
   return (
     <div
       ref={scrollRef}
-      className="flex-1 w-full max-w-4xl mx-auto px-2 sm:px-4 py-4 overflow-y-auto space-y-4 min-h-[350px] max-h-[calc(100vh-280px)] scrollbar-thin scrollbar-thumb-slate-800"
+      className="flex-1 w-full max-w-4xl mx-auto px-2 sm:px-4 py-3 sm:py-4 overflow-y-auto space-y-3 sm:space-y-4 min-h-0 overscroll-contain scrollbar-thin scrollbar-thumb-slate-800"
     >
       {/* Welcome Screen if no messages */}
       {messages.length === 0 && (
@@ -251,9 +250,9 @@ export const ChatDialogue: React.FC<ChatDialogueProps> = ({
                             <p className="text-xs font-bold text-slate-100 font-mono truncate">
                               {msg.createdFile?.name || ('name' in (msg.action || {}) ? (msg.action as any).name : 'hujjat.txt')}
                             </p>
-                            <p className="text-[11px] text-cyan-300 flex items-center gap-1">
+                            <p className="text-[11px] text-emerald-400 flex items-center gap-1 font-medium">
                               <CheckCircle2 className="w-3 h-3 text-emerald-400" />
-                              <span>Virtual xotirada yaratildi • Ortiqcha narsa yuklanmaydi</span>
+                              <span>✓ Kompyuteringizga avtomatik yuklandi</span>
                             </p>
                           </div>
                         </div>
@@ -266,11 +265,11 @@ export const ChatDialogue: React.FC<ChatDialogueProps> = ({
                               const fContent = msg.createdFile?.content ?? ('content' in (msg.action || {}) ? (msg.action as any).content : '');
                               downloadFileToComputer(fName, fContent);
                             }}
-                            title="Faylni kompyuteringizga saqlash (ixtiyoriy)"
-                            className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white font-medium text-[11px] transition-colors border border-slate-700 shadow-sm cursor-pointer"
+                            title="Faylni qayta yuklab olish"
+                            className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-cyan-950/80 hover:bg-cyan-900/80 text-cyan-300 hover:text-white font-medium text-[11px] transition-colors border border-cyan-500/40 shadow-sm cursor-pointer"
                           >
                             <Download className="w-3.5 h-3.5 text-cyan-400" />
-                            <span>Yuklab olish (Ixtiyoriy)</span>
+                            <span>Qayta yuklab olish</span>
                           </button>
 
                           {onViewFile && (
@@ -296,13 +295,6 @@ export const ChatDialogue: React.FC<ChatDialogueProps> = ({
                           <p className="text-[11px] text-slate-400 font-mono line-clamp-2">
                             {msg.createdFile?.content || (msg.action as any).content}
                           </p>
-                        </div>
-                      )}
-
-                      {/* Tips for .bat execution */}
-                      {(msg.createdFile?.name?.endsWith('.bat') || ((msg.action as any)?.name?.endsWith('.bat'))) && (
-                        <div className="p-2 rounded-lg bg-cyan-950/40 border border-cyan-500/30 text-[11px] text-cyan-200">
-                          <span className="font-semibold text-cyan-300">💡 Ishga tushirish bo‘yicha maslahat:</span> Kompyuteringizda ushbu faylni sichqonchaning o‘ng tugmasi bilan bosib, <em>"Administrator sifatida ishga tushirish"</em> (Run as administrator) ni tanlasangiz, barcha Temp va kesh fayllarini to‘liq tozalaydi!
                         </div>
                       )}
                     </div>

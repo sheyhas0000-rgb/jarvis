@@ -12,7 +12,11 @@ import { DownloadAppModal } from './components/DownloadAppModal';
 import { YouTubeModal } from './components/YouTubeModal';
 import { OfflineIndicator } from './components/OfflineIndicator';
 import { PWAInstallButton } from './components/PWAInstallButton';
-import { MessageSquare, ListFilter, Trash2, Download } from 'lucide-react';
+import { QuickCommandChips } from './components/QuickCommandChips';
+import { MobileBottomNav, AppTabType } from './components/MobileBottomNav';
+import { PhoneCompanionView } from './components/PhoneCompanionView';
+import { MobileFilesView } from './components/MobileFilesView';
+import { MessageSquare, ListFilter, Trash2, Download, HardDrive, Smartphone } from 'lucide-react';
 import {
   ApprovedLocation,
   SafeAction,
@@ -22,7 +26,7 @@ import {
   FileItem,
   ChatMessage,
 } from './types';
-import { parseUzbekCommand } from './utils/uzbekParser';
+import { parseUzbekCommand, getActionDoingMessage } from './utils/uzbekParser';
 import { checkLocalAgentStatus, executeSafeAction, parseWithAI } from './services/agentService';
 import { SpeechHandler } from './utils/speech';
 import { downloadFileToComputer } from './utils/fileDownloader';
@@ -42,8 +46,8 @@ const generateUniqueId = (prefix: string = 'msg'): string => {
 };
 
 export default function App() {
-  // Active view: 'chat' (written conversation) vs 'logs' (action history)
-  const [activeTab, setActiveTab] = useState<'chat' | 'logs'>('chat');
+  // Active view: 'chat' | 'files' | 'logs' | 'phone'
+  const [activeTab, setActiveTab] = useState<AppTabType>('chat');
 
   // Agent connection state
   const [agentStatus, setAgentStatus] = useState<AgentStatusInfo | null>(null);
@@ -68,7 +72,7 @@ export default function App() {
 
   // Orb visual state
   const [orbStatus, setOrbStatus] = useState<'idle' | 'listening' | 'processing' | 'success' | 'error'>('idle');
-  const [orbText, setOrbText] = useState('Buyruq bering: yozing yoki mikrofon orqali gapiring...');
+  const [orbText, setOrbText] = useState('Buyruq bering, ser: yozing yoki mikrofon orqali gapiring...');
   const [isVoiceActive, setIsVoiceActive] = useState(false);
 
   // Active command & state
@@ -227,6 +231,8 @@ export default function App() {
         return `${action.oldName} → ${action.newName}`;
       case 'delete_file':
         return `${action.name} o'chirildi`;
+      case 'clear_screen':
+        return 'Ekran tozalandi';
       default:
         return 'Amal bajarildi';
     }
@@ -234,9 +240,25 @@ export default function App() {
 
   // Actual execution on Local Agent or Sandbox
   const performActionExecution = async (action: SafeAction, userPrompt: string) => {
+    if (action.action === 'clear_screen') {
+      handleClearChat();
+      setOrbStatus('idle');
+      setOrbText('Bajarildi, ser! Ekran tozalandi.');
+      if (isVoiceFeedbackEnabled) {
+        SpeechHandler.speak('Bajarildi, ser! Ekranni tozaladim.');
+      }
+      return;
+    }
+
+    const doingMessage = getActionDoingMessage(action);
     setIsProcessing(true);
     setOrbStatus(action.action === 'chat_reply' ? 'idle' : 'processing');
-    setOrbText(action.action === 'chat_reply' ? 'JARVIS javob bermoqda...' : 'Operatsiya bajarilmoqda...');
+    setOrbText(doingMessage);
+
+    // Foydalanuvchi buyruq berganda darhol "Bajarayapman, ser!" deb ovozli aytadi
+    if (isVoiceFeedbackEnabled && action.action !== 'chat_reply') {
+      SpeechHandler.speak(doingMessage);
+    }
 
     const result = await executeSafeAction(
       action,
@@ -253,8 +275,17 @@ export default function App() {
       setOrbStatus(action.action === 'chat_reply' ? 'idle' : 'success');
       setOrbText(result.message.split('\n')[0]);
 
-      // Note: We deliberately do NOT force automatic browser downloads of files!
-      // Files are stored inside JARVIS Virtual Sandbox and can be viewed or exported optionally.
+      // Foydalanuvchi "yarat" deganida yaratilgan fayl yoki papka avtomatik kompyuteriga yuklansin
+      if (action.action === 'create_file') {
+        const fileContent = result.createdFile?.content ?? ('content' in action ? (action as any).content : '') ?? '';
+        const fileName = result.createdFile?.name || ('name' in action ? (action as any).name : 'yangi_hujjat.txt');
+        downloadFileToComputer(fileName, fileContent);
+      } else if (action.action === 'create_folder') {
+        const folderName = ('name' in action ? (action as any).name : 'yangi_papka');
+        const folderLoc = ('location' in action ? (action as any).location : 'Desktop');
+        const folderSummary = `JARVIS Papka Ma'lumoti\n------------------------\nPapka nomi: ${folderName}\nJoylashuv: ${folderLoc}\nYaratilgan vaqti: ${new Date().toLocaleString('uz-UZ')}\nHolat: Tizimda muvaffaqiyatli yaratildi.\n`;
+        downloadFileToComputer(`${folderName}_papka.txt`, folderSummary);
+      }
 
       // If website, open in new tab (if popup permitted)
       if (action.action === 'open_website') {
@@ -366,7 +397,7 @@ export default function App() {
 
     setTimeout(() => {
       setOrbStatus('idle');
-      setOrbText('Buyruq bering: yozing yoki mikrofon orqali gapiring...');
+      setOrbText('Buyruq bering, ser: yozing yoki mikrofon orqali gapiring...');
     }, 4500);
   };
 
@@ -428,7 +459,11 @@ export default function App() {
 
     // Step 2: Unrecognized locally -> Try AI fallback if available
     setOrbStatus('processing');
-    setOrbText("Buyruq tahlil qilinmoqda...");
+    const waitingText = "Bajarayapman, ser! Buyruq tahlil qilinmoqda...";
+    setOrbText(waitingText);
+    if (isVoiceFeedbackEnabled) {
+      SpeechHandler.speak("Bajarayapman, ser!");
+    }
     const aiResult = await parseWithAI(trimmed);
 
     if (aiResult.recognized) {
@@ -564,7 +599,7 @@ export default function App() {
       />
 
       {/* Main JARVIS UI Container */}
-      <main className="flex-1 max-w-5xl w-full mx-auto px-2 sm:px-4 py-4 flex flex-col">
+      <main className="flex-1 max-w-5xl w-full mx-auto px-2 sm:px-4 py-2 sm:py-4 flex flex-col pb-20 sm:pb-6 min-h-0">
         {/* Compact Futuristic Core HUD Reactor */}
         <FuturisticOrb
           status={orbStatus}
@@ -578,8 +613,8 @@ export default function App() {
           }}
         />
 
-        {/* View Switcher: Written Dialogue vs Logs */}
-        <div className="flex items-center justify-between px-4 my-2 flex-wrap gap-2">
+        {/* View Switcher: Desktop Navigation Bar (hidden on mobile, managed by MobileBottomNav) */}
+        <div className="hidden sm:flex items-center justify-between px-2 sm:px-4 my-2 flex-wrap gap-2">
           <div className="flex items-center gap-1 p-1 rounded-xl bg-slate-900 border border-slate-800">
             <button
               onClick={() => setActiveTab('chat')}
@@ -590,7 +625,18 @@ export default function App() {
               }`}
             >
               <MessageSquare className="w-3.5 h-3.5" />
-              <span>Yozma Muloqot ({chatMessages.length})</span>
+              <span>Muloqot ({chatMessages.length})</span>
+            </button>
+            <button
+              onClick={() => setActiveTab('files')}
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
+                activeTab === 'files'
+                  ? 'bg-cyan-950/80 text-cyan-300 border border-cyan-500/40 shadow-sm'
+                  : 'text-slate-400 hover:text-slate-200'
+              }`}
+            >
+              <HardDrive className="w-3.5 h-3.5" />
+              <span>Fayllar ({recentFiles?.items.length || 0})</span>
             </button>
             <button
               onClick={() => setActiveTab('logs')}
@@ -602,6 +648,17 @@ export default function App() {
             >
               <ListFilter className="w-3.5 h-3.5" />
               <span>Amallar Jurnali ({actionLogs.length})</span>
+            </button>
+            <button
+              onClick={() => setActiveTab('phone')}
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
+                activeTab === 'phone'
+                  ? 'bg-cyan-950/80 text-cyan-300 border border-cyan-500/40 shadow-sm'
+                  : 'text-slate-400 hover:text-slate-200'
+              }`}
+            >
+              <Smartphone className="w-3.5 h-3.5" />
+              <span>Telefon Versiyasi</span>
             </button>
           </div>
 
@@ -615,7 +672,7 @@ export default function App() {
                 className="flex items-center gap-1 px-2.5 py-1 text-xs text-slate-500 hover:text-slate-300 hover:bg-slate-900 rounded-lg transition-colors cursor-pointer"
               >
                 <Trash2 className="w-3 h-3" />
-                <span>Suhbatni tozalash</span>
+                <span>Tozalash</span>
               </button>
             )}
           </div>
@@ -623,7 +680,14 @@ export default function App() {
 
         {/* Tab 1: Written Chat Dialogue (Primary View) */}
         {activeTab === 'chat' && (
-          <div className="flex-1 flex flex-col justify-between">
+          <div className="flex-1 flex flex-col justify-between min-h-0">
+            {/* Tez-tez ishlatiladigan buyruqlar chip-tugmalari qatori */}
+            <QuickCommandChips
+              onExecuteCommand={handleProcessCommand}
+              onClearScreen={handleClearChat}
+              isProcessing={isProcessing}
+            />
+
             <ChatDialogue
               messages={chatMessages}
               isProcessing={isProcessing}
@@ -658,7 +722,7 @@ export default function App() {
             />
 
             {/* Input Bar (Written Typing + Voice Microphone) */}
-            <div className="pt-2 sticky bottom-2 z-20">
+            <div className="pt-2 sticky bottom-1 sm:bottom-2 z-20">
               <CommandInput
                 onSubmit={handleProcessCommand}
                 isProcessing={isProcessing}
@@ -677,9 +741,38 @@ export default function App() {
           </div>
         )}
 
-        {/* Tab 2: Action History Logs View */}
+        {/* Tab 2: Mobile Files View */}
+        {activeTab === 'files' && (
+          <div className="flex-1 overflow-y-auto">
+            <MobileFilesView
+              location={recentFiles?.location || 'Desktop'}
+              items={recentFiles?.items || []}
+              onOpenFile={(fileName) => handleProcessCommand(`${fileName} faylini och`)}
+              onDeleteFile={(fileName) => handleProcessCommand(`${fileName} faylini o'chir`)}
+              onRenameFile={(fileName) => {
+                const newName = prompt(`"${fileName}" uchun yangi nom kiriting:`);
+                if (newName && newName.trim()) {
+                  handleProcessCommand(`${fileName} nomini ${newName.trim()} qil`);
+                }
+              }}
+              onViewFile={(fileName, content, loc) => {
+                setViewingFile({
+                  isOpen: true,
+                  name: fileName,
+                  content: content || '',
+                  location: loc || 'Desktop',
+                });
+              }}
+              onCreateNewFile={(fileName, content) => {
+                handleProcessCommand(`Desktopda ${fileName} yarat ichiga ${content || 'Yangi fayl'} deb yoz`);
+              }}
+            />
+          </div>
+        )}
+
+        {/* Tab 3: Action History Logs View */}
         {activeTab === 'logs' && (
-          <div className="flex-1 space-y-4">
+          <div className="flex-1 space-y-4 overflow-y-auto">
             {recentFiles && (
               <FileBrowserCard
                 location={recentFiles.location}
@@ -700,7 +793,7 @@ export default function App() {
               onClearHistory={handleClearHistory}
             />
 
-            <div className="pt-4">
+            <div className="pt-2 sticky bottom-1 sm:bottom-2 z-20">
               <CommandInput
                 onSubmit={handleProcessCommand}
                 isProcessing={isProcessing}
@@ -718,7 +811,30 @@ export default function App() {
             </div>
           </div>
         )}
+
+        {/* Tab 4: Phone Companion / Install Guide View */}
+        {activeTab === 'phone' && (
+          <div className="flex-1 overflow-y-auto">
+            <PhoneCompanionView
+              onOpenDownloadModal={() => setIsDownloadOpen(true)}
+              onRunSampleCommand={(cmd) => {
+                setActiveTab('chat');
+                handleProcessCommand(cmd);
+              }}
+            />
+          </div>
+        )}
       </main>
+
+      {/* Mobile Bottom Navigation Bar (sm:hidden, fixed bottom) */}
+      <MobileBottomNav
+        activeTab={activeTab}
+        onTabChange={setActiveTab}
+        onChangeTab={setActiveTab}
+        chatCount={chatMessages.length}
+        filesCount={recentFiles?.items?.length || 0}
+        logsCount={actionLogs.length}
+      />
 
       {/* Permissions Modal */}
       <PermissionsModal

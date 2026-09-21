@@ -17,7 +17,8 @@ export type SafeActionType =
   | 'rename_file'
   | 'delete_file'
   | 'open_website'
-  | 'open_download_modal';
+  | 'open_download_modal'
+  | 'clear_screen';
 
 export interface CreateFileAction {
   action: 'create_file';
@@ -78,6 +79,10 @@ export interface ChatReplyAction {
   reply: string;
 }
 
+export interface ClearScreenAction {
+  action: 'clear_screen';
+}
+
 export type SafeAction =
   | CreateFileAction
   | CreateFolderAction
@@ -88,7 +93,8 @@ export type SafeAction =
   | DeleteFileAction
   | OpenWebsiteAction
   | OpenDownloadModalAction
-  | ChatReplyAction;
+  | ChatReplyAction
+  | ClearScreenAction;
 
 export interface ParseResult {
   recognized: boolean;

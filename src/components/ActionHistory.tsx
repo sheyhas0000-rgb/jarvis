@@ -33,7 +33,7 @@ export const ActionHistory: React.FC<ActionHistoryProps> = ({
         <div className="flex items-center gap-2">
           <History className="w-4 h-4 text-cyan-400" />
           <h2 className="text-sm font-semibold tracking-wide uppercase text-slate-300 font-['Chakra_Petch']">
-            Amallar Tarixi (Action Log)
+            Amallar Tarixi
           </h2>
           <span className="text-xs px-2 py-0.5 rounded-full bg-slate-800 text-slate-400 font-mono">
             {logs.length}
@@ -91,7 +91,7 @@ export const ActionHistory: React.FC<ActionHistoryProps> = ({
                     : 'bg-sky-950/60 border border-sky-500/30 text-sky-400'
                 }`}
               >
-                {log.isRealWindows ? 'Windows' : 'Sandbox'}
+                {log.isRealWindows ? 'Windows' : 'Xotirada'}
               </span>
             </div>
           </div>

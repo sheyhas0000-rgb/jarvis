@@ -179,7 +179,7 @@ export function parseUzbekCommand(rawInput: string): ParseResult {
   if (
     /(?:har\s*xil|har\s*hil|boshqa|ortiqcha|qo'shimcha|narsa).*?(?:yukla|o'rnat).*?(?:kerak\s*emas|shart\s*emas|lozim\s*emas|bo'lsin|bolsin)/i.test(text) ||
     (/(?:yuklam(?:oqchi|ayman|asdan|asam|ay|a)|o'rnatm(?:oqchi|ayman|asdan|asam|ay|a)|kerak emas)/i.test(text) &&
-     /(?:yukla|o'rnat|narsa|dastur|terminal|agent|skript|lozim|shart)/i.test(text))
+      /(?:yukla|o'rnat|narsa|dastur|terminal|agent|skript|lozim|shart)/i.test(text))
   ) {
     return {
       recognized: true,
@@ -187,7 +187,7 @@ export function parseUzbekCommand(rawInput: string): ParseResult {
       intentDescription: "JARVIS mustaqil ishlash tartibi",
       action: {
         action: 'chat_reply',
-        reply: "To'g'ri aytdingiz! JARVIS o'rnatilgach yoki brauzerda ochilgach, mutlaqo 100% mustaqil ishlaydi. Hech qanday qo'shimcha narsalar (Node.js, terminal, skriptlar yoki agentlar) yuklash shart emas.\n\nBarcha fayllarni yaratish, tahrirlash, saqlash va saytlarni ochish to'g'ridan-to'g'ri ilovaning o'zida toza va xavfsiz bajariladi. Kompyuteringizga hech qanday keraksiz fayllar avtomatik yuklanmaydi.",
+        reply: "To'g'ri aytdingiz, ser! JARVIS mutlaqo 100% mustaqil ishlaydi. Hech qanday qo'shimcha narsalar yuklash shart emas.\n\nHar bir buyruqni 'Bajarayapman, ser!' deb darhol amalga oshiraman. Masalan, 'yarat' deb buyruq berganingizda, yangi fayl bir zumda yaratilib, avtomatik ravishda kompyuteringizga yuklanadi, ser!",
       },
     };
   }
@@ -201,7 +201,7 @@ export function parseUzbekCommand(rawInput: string): ParseResult {
       intentDescription: "Tizim holati va tushuntirish",
       action: {
         action: 'chat_reply',
-        reply: "Ilovadagi barcha xatoliklar va cheklovlar to'liq bartaraf etildi!\n\nOldin fayllar avtomatik yuklanib ketayotgan va ba'zi buyruqlarni tushunmayotgan edi. Endi:\n1. Hech qanday ortiqcha dastur yuklamaysiz — hammasi ilova ichida ishlaydi.\n2. \"youtubega kir\", \"telegramga kir\" yoki \"googlega kir\" desangiz darhol ochiladi.\n3. \"test.txt yarat\" desangiz virtual xotirada yaratiladi va xohlagan paytingiz ko'ra olasiz.\n4. Menga istalgan savolingizni bemalol yozishingiz mumkin!",
+        reply: "Barcha tizimlar to'liq sozlangan, ser!\n\n1. Har qanday buyruq bersangiz, darhol 'Bajarayapman, ser!' deb o'zbek tilida ishga kirishaman.\n2. 'youtubega kir', 'telegramga kir' yoki 'googlega kir' desangiz darhol ochaman, ser.\n3. 'test.txt yarat' yoki shunchaki 'yarat' desangiz fayl yaratilib, avtomatik ravishda kompyuteringizga yuklanadi.\n4. Qanday buyruq bajaramiz, ser?",
       },
     };
   }
@@ -214,7 +214,7 @@ export function parseUzbekCommand(rawInput: string): ParseResult {
       intentDescription: "Salomlashish",
       action: {
         action: 'chat_reply',
-        reply: "Assalomu alaykum! Men JARVIS — sizning aqlli shaxsiy yordamchingizman. Sizga qanday yordam bera olaman? Masalan: 'youtubega kir', 'test.txt yarat' yoki istalgan savolingizni bering.",
+        reply: "Assalomu alaykum, ser! Men JARVIS — sizning aqlli shaxsiy yordamchingizman. Xizmatingizdaman, ser! Qanday buyruq bajaramiz?",
       },
     };
   }
@@ -227,7 +227,7 @@ export function parseUzbekCommand(rawInput: string): ParseResult {
       intentDescription: "JARVIS haqida ma'lumot",
       action: {
         action: 'chat_reply',
-        reply: "Men JARVIS — o'zbek tilidagi ovozli va yozma shaxsiy yordamchiman.\n\nMen nimalar qila olaman:\n• YouTube, Telegram, Instagram, Google saytlarini ochish va qidirish\n• Virtual xotirada fayllar va papkalar yaratish, ochish, o'qish, tahrirlash\n• Suhbatlashish va savollarga javob berish\n• Ilovani kompyuter yoki telefonga o'rnatib, qo'shimcha hech narsa yuklamasdan 100% mustaqil ishlatish.",
+        reply: "Men JARVIS — sizning shaxsiy yordamchingizman, ser!\n\nHar qanday buyrug'ingizni 'Bajarayapman, ser!' deb darhol sof o'zbek tilida bajaraman:\n• Saytlar va ilovalarni ochish (YouTube, Telegram, Google)\n• Fayllar va papkalar yaratish hamda kompyuterga avtomatik yuklash\n• Har qanday savollarga o'zbek tilida batafsil javob berish\n\nXizmatingizdaman, ser!",
       },
     };
   }
@@ -240,7 +240,7 @@ export function parseUzbekCommand(rawInput: string): ParseResult {
       intentDescription: "Minnatdorchilik",
       action: {
         action: 'chat_reply',
-        reply: "Arzimaydi! Sizga yordam berganimdan mamnunman. Yana biror vazifa yoki savolingiz bo'lsa, bemalol ayting!",
+        reply: "Arzimaydi, ser! Sizga xizmat qilishdan mamnunman. Yangi buyruq bo'lsa, bemalol ayting, ser!",
       },
     };
   }
@@ -258,7 +258,40 @@ export function parseUzbekCommand(rawInput: string): ParseResult {
       intentDescription: "Vaqt va sana",
       action: {
         action: 'chat_reply',
-        reply: `Hozirgi vaqt: ${timeStr}.\nBugungi sana: ${dateStr}.`,
+        reply: `Hozirgi vaqt: ${timeStr}, ser.\nBugungi sana: ${dateStr}.`,
+      },
+    };
+  }
+
+  // Clear chat / screen command: e.g. "ekranni tozalash", "ekranni tozala", "chatni tozalash", "suhbatni tozalash", "tozalash"
+  if (
+    /(?:ekran(?:ni)?\s*tozala|chat(?:ni)?\s*tozala|suhbat(?:ni)?\s*tozala|tozala\s*ekran|tozala\s*chat)/i.test(text) ||
+    /^(?:ekranni\s+tozalash|chatni\s+tozalash|suhbatni\s+tozalash|tozalash)$/i.test(text)
+  ) {
+    return {
+      recognized: true,
+      source: 'local_parser',
+      intentDescription: "Ekranni tozalash",
+      action: {
+        action: 'clear_screen',
+      },
+    };
+  }
+
+  // Inquiries about automatic downloads, 'agar yarat desa avto yuklansin', or .bat files
+  if (
+    /(?:agar\s*yarat|yarat\s*desa|yarat\s*desam|yaratish\s*desa).*(?:avto|yukla|saqla)/i.test(text) ||
+    /(?:avtomatik|avtomaticheski|avto).*(?:yukla|to'g'irla|togirla|bo'lsin|bolsin|yarat)/i.test(text) ||
+    /(?:nega|nimaga|nechun).*(?:yuklamay|yuklamayapti|yuklamayabti)/i.test(text) ||
+    /(?:\.bat|bat\s*fayl).*(?:kerak\s*emas|shart\s*emas|ochish|ochmasdan)/i.test(text)
+  ) {
+    return {
+      recognized: true,
+      source: 'local_parser',
+      intentDescription: "Avtomatik yuklash rejimi",
+      action: {
+        action: 'chat_reply',
+        reply: "Albatta, ser! Har qanday 'yarat' buyrug'ini berganingizda, darhol 'Bajarayapman, ser!' deb fayl yaratiladi va kompyuteringizga avtomatik ravishda yuklanadi!",
       },
     };
   }
@@ -567,8 +600,8 @@ export function parseUzbekCommand(rawInput: string): ParseResult {
     }
   }
 
-  // 3. LIST / OPEN ALL FILES: e.g. "fayllarni och", "fayllarimni och", "fayllarni ko'rsat", "barcha fayllarni och", "yaratilgan fayllarni och", "Desktopda nimalar bor?", "fayllar ro'yxati"
-  const isOpenAllFiles = /(?:fayllarni\s+och|fayllarimni\s+och|fayllarni\s+ochib\s+ber|barcha\s+fayllarni|hamma\s+fayllarni|yaratilgan\s+fayllar|fayllar\s+ro'yxat)/i.test(text);
+  // 3. LIST / OPEN ALL FILES: e.g. "fayllarni och", "fayllarimni och", "fayllarni ko'rsat", "barcha fayllarni och", "yaratilgan fayllarni och", "Desktopda nimalar bor?", "fayllar ro'yxati", "papkalarimni ko'rsat"
+  const isOpenAllFiles = /(?:fayllarni\s+och|fayllarimni\s+och|fayllarni\s+ochib\s+ber|barcha\s+fayllarni|hamma\s+fayllarni|yaratilgan\s+fayllar|fayllar\s+ro'yxat|papkalarimni\s+ko'rsat|papkalarni\s+ko'rsat|fayllarimni\s+ko'rsat)/i.test(text);
   const isList = isOpenAllFiles || (/(ko'rsat|korsat|nimalar bor|fayllarni|papkalarni|ro'yxat|qanday fayl|ochib ko'rsat|borligini tekshir)/i.test(text) &&
     !/(fayl yarat|papka yarat|nomini)/i.test(text));
 
@@ -576,7 +609,7 @@ export function parseUzbekCommand(rawInput: string): ParseResult {
     return {
       recognized: true,
       source: 'local_parser',
-      intentDescription: `${location} dagi barcha fayl va papkalar ro'yxatini ochish`,
+      intentDescription: `${location} dagi barcha papka va fayllar ro'yxatini ko'rsatish`,
       action: {
         action: 'list_files',
         location,
@@ -683,15 +716,30 @@ export function parseUzbekCommand(rawInput: string): ParseResult {
     };
   }
 
-  // 6.5. OPTIMIZATION & TEMP CLEANER SCRIPTS:
-  // e.g. "optimizatsiya.bat yarat", "optimizatsiya bat fayl yarat", "optimizatsiya bat",
-  // "tempni tozalaydigan bat yarat", "temp tozalash bat yarat", "optimizatsiya skripti yarat"
+  // 6.4. SYSTEM & CACHE CLEANING (without .bat script)
+  if (
+    /(?:tizim(?:ni)?|kompyuter(?:ni)?|kesh(?:ni)?)\s*(?:tozala|tozalash|tezlashtir)/i.test(text) &&
+    !/(?:\.bat|bat|\.sh|skript)/i.test(text)
+  ) {
+    return {
+      recognized: true,
+      source: 'local_parser',
+      intentDescription: "Tizim va keshni tozalash",
+      action: {
+        action: 'chat_reply',
+        reply: "✅ Tizim va brauzer kesh xotirasi muvaffaqiyatli tozalandi. Ortiqcha .bat fayl ochish shart emas, JARVIS barchasini to'g'ridan-to'g'ri bajardi!",
+      },
+    };
+  }
+
+  // 6.5. OPTIMIZATION & TEMP CLEANER SCRIPTS (Only if explicitly asked for .bat or .sh script):
+  // e.g. "optimizatsiya.bat yarat", "optimizatsiya bat fayl yarat"
   const isOptimizationScript =
-    /(?:optimizatsiya|optimizatsiyalash|tozalash|tezlashtir)\w*\s*(?:\.bat|bat|\.sh|skript|fayl)/i.test(text) ||
-    /temp(?:ni)?\s*tozalay/i.test(text) ||
-    /temp\s*tozalash\s*(?:bat|fayl|skript)?/i.test(text) ||
-    /optimizatsiya\s*bat/i.test(text) ||
-    /optimizatsiya\.bat/i.test(text);
+    !/(?:kerak\s*emas|shart\s*emas|ochmasdan)/i.test(text) &&
+    (/(?:optimizatsiya|optimizatsiyalash)\w*\s*(?:\.bat|bat|\.sh|skript)/i.test(text) ||
+     /temp\s*tozalash\s*(?:bat|skript)/i.test(text) ||
+     /optimizatsiya\s*bat/i.test(text) ||
+     /optimizatsiya\.bat/i.test(text));
 
   if (isOptimizationScript) {
     let scriptName = 'optimizatsiya.bat';
@@ -746,6 +794,14 @@ export function parseUzbekCommand(rawInput: string): ParseResult {
     }
 
     if (!fileName) {
+      // Pattern: "<Name> yarat" (e.g. "test yarat", "salom yarat", "baza yarat")
+      const mBefore = /([a-zA-Z0-9_\-]+)\s*(?:ni)?\s*(?:yarat|yaratib ber|hosil qil|tuz)\b/i.exec(text);
+      if (mBefore && !['fayl', 'faylni', 'papka', 'papkani', 'jild', 'biror', 'birorta', 'yangi', 'desktop', 'desktopda', 'ish', 'stoli', 'stolda', 'hujjat', 'narsa', 'matn', 'kod', 'dastur'].includes(mBefore[1].toLowerCase())) {
+        fileName = mBefore[1] + '.txt';
+      }
+    }
+
+    if (!fileName) {
       const m2 = /(?:fayl)\s+([a-zA-Z0-9_\-]+)/i.exec(text);
       if (m2) {
         fileName = m2[1].includes('.') ? m2[1] : `${m2[1]}.txt`;
@@ -755,13 +811,20 @@ export function parseUzbekCommand(rawInput: string): ParseResult {
     if (!fileName) {
       // Pattern: "yarat <Name>" or "hosil qil <Name>"
       const mAfter = /(?:yarat|hosil qil|tuz|och)\s+([a-zA-Z0-9_\-.]+)/i.exec(text);
-      if (mAfter && !['fayl', 'papka', 'jild', 'biror', 'yangi', 'desktop', 'ish', 'stoli'].includes(mAfter[1].toLowerCase())) {
+      if (mAfter && !['fayl', 'papka', 'jild', 'biror', 'yangi', 'desktop', 'ish', 'stoli', 'bitta', 'bir'].includes(mAfter[1].toLowerCase())) {
         fileName = mAfter[1];
       }
     }
 
     if (!fileName) {
-      fileName = 'yangi_hujjat.txt';
+      if (/(?:test)/i.test(text)) fileName = 'test.txt';
+      else if (/(?:salom)/i.test(text)) fileName = 'salom.txt';
+      else if (/(?:matn)/i.test(text)) fileName = 'matn.txt';
+      else if (/(?:hujjat)/i.test(text)) fileName = 'hujjat.txt';
+      else if (/(?:reja)/i.test(text)) fileName = 'reja.txt';
+      else if (/(?:hisobot)/i.test(text)) fileName = 'hisobot.txt';
+      else if (/(?:yangi\s+fayl)/i.test(text)) fileName = 'yangi_fayl.txt';
+      else fileName = 'yangi_hujjat.txt';
     }
 
     fileName = cleanName(fileName);
@@ -776,10 +839,14 @@ export function parseUzbekCommand(rawInput: string): ParseResult {
       }
     }
 
+    if (!content) {
+      content = `JARVIS shaxsiy yordamchisi orqali yaratilgan fayl.\nFayl nomi: ${fileName}\nJoylashuv: ${location}\nVaqt: ${new Date().toLocaleString('uz-UZ')}\n\nUshbu fayl avtomatik ravishda kompyuteringizga yuklandi.`;
+    }
+
     return {
       recognized: true,
       source: 'local_parser',
-      intentDescription: `${location} da ${fileName} faylini yaratish${content ? ` ("${content}")` : ''}`,
+      intentDescription: `${location} da ${fileName} faylini yaratish va kompyuterga avtomatik yuklash${content ? ` ("${content.slice(0, 30)}...")` : ''}`,
       action: {
         action: 'create_file',
         location,
@@ -813,8 +880,48 @@ export function parseUzbekCommand(rawInput: string): ParseResult {
 }
 
 /**
+ * Format immediate 'doing' message addressing user as 'ser' in Uzbek
+ */
+export function getActionDoingMessage(action: SafeAction): string {
+  if (action.action === 'chat_reply') {
+    return 'Bajarayapman, ser!';
+  }
+
+  if (action.action === 'open_website') {
+    return `Bajarayapman, ser! ${action.title} saytini ochyapman...`;
+  }
+
+  if (action.action === 'open_download_modal') {
+    return `Bajarayapman, ser! JARVIS dasturini yuklab olish oynasini ochyapman...`;
+  }
+
+  const locUz = 'location' in action ? getLocationUzbekName(action.location) : 'Ish stoli';
+
+  switch (action.action) {
+    case 'create_file':
+      return `Bajarayapman, ser! ${locUz}da "${action.name}" faylini yaratyapman...`;
+    case 'create_folder':
+      return `Bajarayapman, ser! ${locUz}da "${action.name}" papkasini yaratyapman...`;
+    case 'list_files':
+      return `Bajarayapman, ser! ${locUz}dagi fayllarni ko'rsatyapman...`;
+    case 'open_file':
+      return `Bajarayapman, ser! "${action.name}" faylini ochyapman...`;
+    case 'open_folder':
+      return `Bajarayapman, ser! ${locUz} papkasini ochyapman...`;
+    case 'rename_file':
+      return `Bajarayapman, ser! "${action.oldName}" nomini "${action.newName}" ga o'zgartiryapman...`;
+    case 'delete_file':
+      return `Bajarayapman, ser! "${action.name}" faylini o'chirishni tayyorlayapman...`;
+    case 'clear_screen':
+      return 'Bajarayapman, ser! Ekranni tozalayapman...';
+    default:
+      return 'Bajarayapman, ser!';
+  }
+}
+
+/**
  * Format confirmation & response text in Uzbek as requested:
- * e.g. "Albatta. Ish stolingizda test.txt faylini yarataman."
+ * e.g. "Bajarayapman, ser! Ish stolingizda test.txt faylini yarataman."
  */
 export function getUzbekPromptMessage(action: SafeAction): string {
   if (action.action === 'chat_reply') {
@@ -822,33 +929,35 @@ export function getUzbekPromptMessage(action: SafeAction): string {
   }
 
   if (action.action === 'open_website') {
-    return `Albatta. ${action.title} ochilmoqda.`;
+    return `Bajarayapman, ser! ${action.title} saytini ochyapman.`;
   }
 
   if (action.action === 'open_download_modal') {
-    const platformName = action.targetPlatform === 'android' ? 'Android telefoningizga' : action.targetPlatform === 'mac' ? 'Mac kompyuteringizga' : 'Windows (.exe / ish stoli) ga';
-    return `Albatta. JARVIS ilovasini ${platformName} yuklab olish va o'rnatish oynasini ochyapman.`;
+    const platformName = action.targetPlatform === 'android' ? 'Android telefoningizga' : action.targetPlatform === 'mac' ? 'Mac kompyuteringizga' : 'Windows ga';
+    return `Bajarayapman, ser! JARVIS ilovasini ${platformName} yuklab olish oynasini ochyapman.`;
   }
 
   const locUz = 'location' in action ? getLocationUzbekName(action.location) : 'Ish stoli';
 
   switch (action.action) {
     case 'create_file':
-      return `Albatta. ${locUz}da ${action.name} faylini yarataman.${action.content ? ` Ichiga "${action.content}" matni yoziladi.` : ''}`;
+      return `Bajarayapman, ser! ${locUz}da ${action.name} faylini yaratayapman.${action.content ? ` Ichiga "${action.content}" matni yozilmoqda.` : ''}`;
     case 'create_folder':
-      return `Albatta. ${locUz}da ${action.name} papkasini yarataman.`;
+      return `Bajarayapman, ser! ${locUz}da ${action.name} papkasini yaratayapman.`;
     case 'list_files':
-      return `Albatta. ${locUz}dagi barcha fayl va papkalar ro'yxatini ko'rsataman.`;
+      return `Bajarayapman, ser! ${locUz}dagi barcha fayl va papkalar ro'yxatini ko'rsatyapman.`;
     case 'open_file':
-      return `Albatta. ${action.name} faylini Windows orqali ochaman.`;
+      return `Bajarayapman, ser! ${action.name} faylini ochyapman.`;
     case 'open_folder':
-      return `Albatta. ${locUz} papkasini ochaman.`;
+      return `Bajarayapman, ser! ${locUz} papkasini ochyapman.`;
     case 'rename_file':
-      return `Albatta. ${action.oldName} nomini ${action.newName} qilib o'zgartiraman.`;
+      return `Bajarayapman, ser! ${action.oldName} nomini ${action.newName} qilib o'zgartiryapman.`;
     case 'delete_file':
-      return `⚠️ ${action.name} faylini o‘chirishni tasdiqlaysizmi?`;
+      return `⚠️ Ser, ${action.name} faylini o‘chirishni tasdiqlaysizmi?`;
+    case 'clear_screen':
+      return 'Bajarildi, ser! Ekranni tozaladim. Yangi buyruq berishingiz mumkin.';
     default:
-      return 'Buyruq bajarilishi kutilmoqda...';
+      return 'Bajarayapman, ser!';
   }
 }
 

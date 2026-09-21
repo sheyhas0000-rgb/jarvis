@@ -108,6 +108,15 @@ export async function executeSafeAction(
     };
   }
 
+  // Handle clear screen action
+  if (action.action === 'clear_screen') {
+    return {
+      success: true,
+      message: "Ekranni tozaladim. Yangi buyruq berishingiz mumkin.",
+      isRealWindows: false,
+    };
+  }
+
   // 1. Check user permission
   if (!allowedLocations[action.location]) {
     const locNames: Record<ApprovedLocation, string> = {

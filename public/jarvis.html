@@ -192,6 +192,39 @@
       </div>
     </div>
 
+    <!-- Quick Command Chips Bar Above Chat Window -->
+    <div class="flex items-center gap-2 p-1.5 rounded-2xl bg-slate-900/90 border border-cyan-500/30 backdrop-blur-md shadow-lg">
+      <div class="hidden sm:flex items-center gap-1.5 px-2.5 py-1 text-[11px] font-mono font-semibold uppercase tracking-wider text-cyan-400 border-r border-slate-800 shrink-0 select-none">
+        <span>⚡ Tezkor:</span>
+      </div>
+      <div class="flex items-center gap-2 overflow-x-auto scrollbar-none py-0.5 flex-1">
+        <button onclick="runCommand('papkalarimni ko\'rsat')" class="flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-cyan-500/30 text-cyan-300 bg-cyan-950/50 hover:bg-cyan-900/60 text-xs font-mono whitespace-nowrap cursor-pointer transition-all active:scale-95">
+          <span>📁</span> 'papkalarimni ko'rsat'
+        </button>
+        <button onclick="runCommand('yangi fayl yarat')" class="flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-emerald-500/30 text-emerald-300 bg-emerald-950/50 hover:bg-emerald-900/60 text-xs font-mono whitespace-nowrap cursor-pointer transition-all active:scale-95">
+          <span>➕</span> 'yangi fayl yarat'
+        </button>
+        <button onclick="clearChatScreen()" class="flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-rose-500/30 text-rose-300 bg-rose-950/50 hover:bg-rose-900/60 text-xs font-mono whitespace-nowrap cursor-pointer transition-all active:scale-95">
+          <span>🧹</span> 'ekranni tozalash'
+        </button>
+        <button onclick="runCommand('fayllarni och')" class="flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-blue-500/30 text-blue-300 bg-blue-950/50 hover:bg-blue-900/60 text-xs font-mono whitespace-nowrap cursor-pointer transition-all active:scale-95">
+          <span>📂</span> 'fayllarni och'
+        </button>
+        <button onclick="runCommand('Desktopda test.txt yarat')" class="flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-amber-500/30 text-amber-300 bg-amber-950/50 hover:bg-amber-900/60 text-xs font-mono whitespace-nowrap cursor-pointer transition-all active:scale-95">
+          <span>📄</span> 'Desktopda test.txt yarat'
+        </button>
+        <button onclick="runCommand('youtubega kir')" class="flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-red-500/30 text-red-300 bg-red-950/50 hover:bg-red-900/60 text-xs font-mono whitespace-nowrap cursor-pointer transition-all active:scale-95">
+          <span>▶️</span> 'youtubega kir'
+        </button>
+        <button onclick="runCommand('telegramga kir')" class="flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-sky-500/30 text-sky-300 bg-sky-950/50 hover:bg-sky-900/60 text-xs font-mono whitespace-nowrap cursor-pointer transition-all active:scale-95">
+          <span>✈️</span> 'telegramga kir'
+        </button>
+        <button onclick="runCommand('chatgptga kir')" class="flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-teal-500/30 text-teal-300 bg-teal-950/50 hover:bg-teal-900/60 text-xs font-mono whitespace-nowrap cursor-pointer transition-all active:scale-95">
+          <span>🤖</span> 'chatgptga kir'
+        </button>
+      </div>
+    </div>
+
     <!-- Interactive Chat Dialogue Stream -->
     <div id="chatBox" class="flex-1 bg-slate-950/60 border border-slate-800/90 rounded-2xl p-4 sm:p-5 overflow-y-auto min-h-[380px] max-h-[550px] flex flex-col gap-4 shadow-[0_0_25px_rgba(0,0,0,0.5)]">
       
@@ -500,6 +533,14 @@
     }
 
     // Modal Control Helpers
+    window.clearChatScreen = function() {
+      const chatBox = document.getElementById('chatBox');
+      chatBox.innerHTML = '';
+      playSciFiSound('beep');
+      setOrbStatus('idle', 'Ekran tozalandi');
+      addMessage('jarvis', 'Muloqot tarixi va ekran muvaffaqiyatli tozalandi. Menga yangi yozma yoki ovozli buyruq beravering.');
+    };
+
     window.openModal = function(id) {
       const modal = document.getElementById(id);
       if (modal) modal.classList.remove('hidden');
@@ -668,6 +709,13 @@
       playSciFiSound('click');
       setOrbStatus('processing', 'Operatsiya bajarilmoqda...');
 
+      // 0. Clear Chat Screen
+      if (/(?:ekran(?:ni)?\s*tozala|chat(?:ni)?\s*tozala|suhbat(?:ni)?\s*tozala|tozala\s*ekran)/i.test(text) ||
+          /^(?:ekranni\s+tozalash|chatni\s+tozalash|suhbatni\s+tozalash|tozalash)$/i.test(text)) {
+        clearChatScreen();
+        return;
+      }
+
       // 1. YouTube
       if (/youtube|yutub/i.test(text)) {
         setOrbStatus('success', 'YouTube ochildi');
@@ -805,18 +853,19 @@
         if (matchContent) content = matchContent[1];
 
         createVirtualFile(fileName, content);
-        setOrbStatus('success', fileName + ' yaratildi');
+        downloadFileToPc(fileName, content);
+        setOrbStatus('success', fileName + ' yaratildi va yuklandi');
         playSciFiSound('success');
-        const reply = "Albatta. Ish stoli xotirasida '" + fileName + "' fayli yaratildi.";
+        const reply = "Albatta. '" + fileName + "' fayli yaratildi va kompyuteringizga avtomatik yuklandi.";
         const extra = \`
           <div class="p-3 rounded-xl bg-slate-950 border border-cyan-500/40 flex items-center justify-between flex-wrap gap-2">
             <div>
               <p class="font-bold text-slate-200 font-mono text-xs">📄 \${fileName}</p>
-              <p class="text-[11px] text-cyan-400">Virtual xotirada saqlandi • Ortiqcha narsa yuklanmaydi</p>
+              <p class="text-[11px] text-emerald-400">✓ Kompyuteringizga avtomatik yuklandi va saqlandi</p>
             </div>
             <div class="flex items-center gap-2">
               <button onclick="openFileInViewer('\${fileName}')" class="px-2.5 py-1 rounded-lg bg-cyan-600 hover:bg-cyan-500 text-white font-chakra text-xs font-bold cursor-pointer">Ko'rish / Tahrirlash</button>
-              <button onclick="downloadFileToPc('\${fileName}', '\${encodeURIComponent(content)}')" class="px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs cursor-pointer">Yuklab olish (Ixtiyoriy)</button>
+              <button onclick="downloadFileToPc('\${fileName}', '\${encodeURIComponent(content)}')" class="px-2.5 py-1 rounded-lg bg-cyan-950/80 hover:bg-cyan-900/80 text-cyan-300 border border-cyan-500/40 text-xs cursor-pointer">Qayta yuklab olish</button>
             </div>
           </div>
         \`;
