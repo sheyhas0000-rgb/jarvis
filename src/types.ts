@@ -1,111 +1,101 @@
 export type ApprovedLocation = 'Desktop' | 'Documents' | 'Downloads' | 'Pictures' | 'Videos';
 
-export interface LocationInfo {
-  id: ApprovedLocation;
-  uzbekName: string;
-  aliases: string[];
+export type SidebarTab = 
+  | 'chat'
+  | 'settings'
+  | 'all_chats'
+  | 'recent_chats'
+  | 'plugins'
+  | 'projects'
+  | 'updates'
+  | 'profile';
+
+export type PermissionType = 
+  | 'application_launch'
+  | 'file_access'
+  | 'file_delete'
+  | 'browser_control'
+  | 'windows_commands'
+  | 'system_settings'
+  | 'automation';
+
+export interface PermissionRule {
+  enabled: boolean;
+  requireConfirmation: boolean;
+  label: string;
+  description: string;
+}
+
+export type PermissionSettings = Record<PermissionType, PermissionRule>;
+
+export interface PendingPermission {
+  id: string;
+  commandText: string;
+  permissionType: PermissionType;
+  actionTitle: string;
+  details: string;
+  onConfirm: () => void;
+  onCancel: () => void;
+}
+
+export type CommandCategory = 
+  | 'applications'
+  | 'windows'
+  | 'files'
+  | 'browser'
+  | 'system'
+  | 'automation';
+
+export interface LocalCommandDefinition {
+  id: string;
+  name: string;
+  category: CommandCategory;
+  pluginId: string;
+  keywords: string[];
+  description: string;
+  example: string;
+  requiresPermission: PermissionType;
+  dangerous?: boolean;
+}
+
+export interface LocalPlugin {
+  id: string;
+  name: string;
+  description: string;
+  status: 'active' | 'disabled';
+  enabled: boolean;
+  version: string;
   icon: string;
-  defaultEnabled: boolean;
+  category: string;
+  commandsCount: number;
+  guide: string;
+  settings?: Record<string, boolean | string | number>;
 }
 
-export type SafeActionType = 
-  | 'create_file'
-  | 'create_folder'
-  | 'list_files'
-  | 'open_file'
-  | 'open_folder'
-  | 'rename_file'
-  | 'delete_file'
-  | 'open_website'
-  | 'open_download_modal'
-  | 'clear_screen';
-
-export interface CreateFileAction {
-  action: 'create_file';
-  location: ApprovedLocation;
+export interface Project {
+  id: string;
   name: string;
-  content: string;
+  description?: string;
+  color: string;
+  icon: string;
+  createdAt: number;
 }
 
-export interface CreateFolderAction {
-  action: 'create_folder';
-  location: ApprovedLocation;
-  name: string;
+export interface AppSettings {
+  agentName: string;
+  language: 'uz_lat' | 'uz_kir' | 'en';
+  theme: 'dark' | 'light';
+  animations: boolean;
+  soundEnabled: boolean;
+  showTimestamps: boolean;
+  notifications: boolean;
+  defaultLocation: ApprovedLocation;
+  permissions: PermissionSettings;
 }
 
-export interface ListFilesAction {
-  action: 'list_files';
-  location: ApprovedLocation;
-}
-
-export interface OpenFileAction {
-  action: 'open_file';
-  location: ApprovedLocation;
-  name: string;
-}
-
-export interface OpenFolderAction {
-  action: 'open_folder';
-  location: ApprovedLocation;
-}
-
-export interface RenameFileAction {
-  action: 'rename_file';
-  location: ApprovedLocation;
-  oldName: string;
-  newName: string;
-}
-
-export interface DeleteFileAction {
-  action: 'delete_file';
-  location: ApprovedLocation;
-  name: string;
-}
-
-export interface OpenWebsiteAction {
-  action: 'open_website';
-  title: string;
-  url: string;
-  iconType: 'instagram' | 'youtube' | 'facebook' | 'telegram' | 'google' | 'tiktok' | 'chatgpt' | 'github' | 'web';
-}
-
-export interface OpenDownloadModalAction {
-  action: 'open_download_modal';
-  targetPlatform?: 'windows' | 'mac' | 'android';
-}
-
-export interface ChatReplyAction {
-  action: 'chat_reply';
-  reply: string;
-}
-
-export interface ClearScreenAction {
-  action: 'clear_screen';
-}
-
-export type SafeAction =
-  | CreateFileAction
-  | CreateFolderAction
-  | ListFilesAction
-  | OpenFileAction
-  | OpenFolderAction
-  | RenameFileAction
-  | DeleteFileAction
-  | OpenWebsiteAction
-  | OpenDownloadModalAction
-  | ChatReplyAction
-  | ClearScreenAction;
-
-export interface ParseResult {
-  recognized: boolean;
-  action?: SafeAction;
-  intentDescription?: string;
-  error?: string;
-  isConversational?: boolean;
-  reply?: string;
-  requiresConfirmation?: boolean;
-  confirmationMessage?: string;
-  source: 'local_parser' | 'ai_parser';
+export interface SafeAction {
+  action: string;
+  [key: string]: any;
 }
 
 export interface FileItem {
@@ -114,44 +104,8 @@ export interface FileItem {
   size?: number;
   sizeFormatted?: string;
   modifiedAt?: string;
-  extension?: string;
-}
-
-export interface ExecutionResult {
-  success: boolean;
-  message: string;
-  details?: string;
-  items?: FileItem[];
-  path?: string;
-  isRealWindows: boolean;
-  createdFile?: {
-    name: string;
-    content?: string;
-    size?: number;
-    location: ApprovedLocation;
-  };
-  webLink?: {
-    title: string;
-    url: string;
-    iconType: string;
-  };
-}
-
-export interface ActionLogItem {
-  id: string;
-  timestamp: string;
-  timeFormatted: string;
-  command: string;
-  summary: string;
-  status: 'success' | 'error' | 'warning' | 'pending';
-  response: string;
-  action?: SafeAction;
-  isRealWindows: boolean;
-  webLink?: {
-    title: string;
-    url: string;
-    iconType: string;
-  };
+  location?: ApprovedLocation;
+  content?: string;
 }
 
 export interface ChatMessage {
@@ -159,6 +113,7 @@ export interface ChatMessage {
   sender: 'user' | 'jarvis';
   text: string;
   timeFormatted: string;
+  timestamp: number;
   status?: 'success' | 'error' | 'pending' | 'info';
   action?: SafeAction;
   isRealWindows?: boolean;
@@ -174,22 +129,63 @@ export interface ChatMessage {
     url: string;
     iconType: string;
   };
+  commandDetails?: {
+    commandId?: string;
+    category?: CommandCategory;
+    permissionUsed?: PermissionType;
+    windowsCommand?: string;
+    executedAt?: string;
+  };
   pendingConfirmation?: {
     action: SafeAction;
     message: string;
-    type: 'delete' | 'create' | 'open' | 'rename';
+    type: 'delete' | 'create' | 'open' | 'rename' | 'shutdown' | 'restart' | 'system';
   };
 }
 
-export interface AgentStatusInfo {
-  connected: boolean;
-  url: string;
-  username: string;
-  hostname: string;
-  platform: string;
-  platformName?: string;
-  homeDir?: string;
-  version: string;
-  allowedPaths: Record<ApprovedLocation, string>;
-  lastChecked: number;
+export interface ChatSession {
+  id: string;
+  title: string;
+  createdAt: number;
+  updatedAt: number;
+  messages: ChatMessage[];
+  projectId?: string;
+  isArchived?: boolean;
+}
+
+export interface CommandExecutionResult {
+  success: boolean;
+  message: string;
+  details?: string;
+  windowsCommand?: string;
+  createdFile?: {
+    name: string;
+    content?: string;
+    size?: number;
+    location: ApprovedLocation;
+  };
+  fileItems?: FileItem[];
+  webLink?: {
+    title: string;
+    url: string;
+    iconType: string;
+  };
+  speechText?: string;
+  requiresConfirmation?: boolean;
+  confirmationMessage?: string;
+  permissionType?: PermissionType;
+}
+
+export interface ParseResult {
+  recognized: boolean;
+  commandId?: string;
+  category?: CommandCategory;
+  pluginId?: string;
+  title?: string;
+  args?: Record<string, any>;
+  requiresConfirmation?: boolean;
+  confirmationMessage?: string;
+  permissionType?: PermissionType;
+  unrecognizedReason?: string;
+  suggestedCommands?: string[];
 }

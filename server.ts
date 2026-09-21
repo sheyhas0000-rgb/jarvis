@@ -2,7 +2,6 @@ import express from 'express';
 import path from 'path';
 import fs from 'fs';
 import { createServer as createViteServer } from 'vite';
-import { GoogleGenAI, Type } from '@google/genai';
 
 const app = express();
 const PORT = 3000;
@@ -20,7 +19,7 @@ interface SandboxEntry {
 
 const sandboxStorage: Record<string, SandboxEntry[]> = {
   Desktop: [
-    { name: 'Hujjatlarim.txt', type: 'file', size: 120, content: 'JARVIS sinov hujjati', modifiedAt: new Date().toISOString() },
+    { name: 'Hujjatlarim.txt', type: 'file', size: 120, content: 'JARVIS Lokal Agent sinov hujjati', modifiedAt: new Date().toISOString() },
     { name: 'Loyiha', type: 'folder', size: 0, content: '', modifiedAt: new Date().toISOString() }
   ],
   Downloads: [
@@ -76,84 +75,16 @@ app.get('/api/agent/download-script', (req, res) => {
   }
 });
 
-// API: Optional AI Parser using Gemini if local parsing is ambiguous or complex
-app.post('/api/ai-parse', async (req, res) => {
-  const { prompt } = req.body;
-  if (!prompt || typeof prompt !== 'string') {
-    return res.status(400).json({ error: 'Prompt berilmadi' });
-  }
-
-  const apiKey = process.env.GEMINI_API_KEY;
-  if (!apiKey) {
-    return res.status(200).json({
-      recognized: false,
-      reason: 'Gemini API kaliti mavjud emas. Mahalliy parser faol.',
-    });
-  }
-
-  try {
-    const ai = new GoogleGenAI({
-      apiKey,
-      httpOptions: {
-        headers: {
-          'User-Agent': 'aistudio-build',
-        },
-      },
-    });
-
-    const systemInstruction = `Siz Windows operatsion tizimi uchun o'zbekcha JARVIS yordamchisining buyruq tahlilchisisiz.
-Foydalanuvchining o'zbekcha buyrug'ini tahlil qiling va qat'iy quyidagi xavfsiz JSON tuzilmasiga o'giring:
-Ruxsat etilgan location: "Desktop", "Documents", "Downloads", "Pictures", "Videos" (agar aytilmasa "Desktop").
-Ruxsat etilgan action:
-1. create_file: { action: "create_file", location, name, content }
-2. create_folder: { action: "create_folder", location, name }
-3. list_files: { action: "list_files", location }
-4. open_file: { action: "open_file", location, name }
-5. open_folder: { action: "open_folder", location }
-6. rename_file: { action: "rename_file", location, oldName, newName }
-7. delete_file: { action: "delete_file", location, name }
-
-Hech qanday boshqa erkin tizim buyruqlariga (cmd, powershell) ruxsat yo'q. Faqat ushbu 7 ta actiondan birini tanlang.
-Agar tushunarsiz yoki xavfli bo'lsa recognized: false qaytaring.`;
-
-    const response = await ai.models.generateContent({
-      model: 'gemini-3.8-flash',
-      contents: `Foydalanuvchi buyrug'i: "${prompt}"`,
-      config: {
-        systemInstruction,
-        responseMimeType: 'application/json',
-        responseSchema: {
-          type: Type.OBJECT,
-          properties: {
-            recognized: { type: Type.BOOLEAN },
-            action: { type: Type.STRING },
-            location: { type: Type.STRING },
-            name: { type: Type.STRING },
-            content: { type: Type.STRING },
-            oldName: { type: Type.STRING },
-            newName: { type: Type.STRING },
-            intentDescription: { type: Type.STRING },
-          },
-          required: ['recognized'],
-        },
-      },
-    });
-
-    const parsedJson = JSON.parse(response.text?.trim() || '{}');
-    return res.json({
-      ...parsedJson,
-      source: 'ai_parser',
-    });
-  } catch (err: any) {
-    console.error('AI parse xatosi:', err.message);
-    return res.status(200).json({
-      recognized: false,
-      reason: 'AI tahlilida xatolik',
-    });
-  }
+// Pure Local Agent: AI endpoints removed completely.
+// If any legacy call is made to /api/ai-parse, gracefully return recognized: false
+app.post('/api/ai-parse', (req, res) => {
+  res.json({
+    recognized: false,
+    message: 'JARVIS 100% lokal agent rejimida ishlaydi. Hech qanday AI API ishlatilmaydi.'
+  });
 });
 
-// API: Sandbox execution (Cloud preview fallback when 127.0.0.1:8765 is not yet running on client machine)
+// API: Sandbox execution (fallback file storage)
 app.post('/api/sandbox/execute', (req, res) => {
   const { action, location = 'Desktop', name, content = '', oldName, newName } = req.body;
 
@@ -172,7 +103,6 @@ app.post('/api/sandbox/execute', (req, res) => {
   switch (action) {
     case 'create_file': {
       if (!name) return res.status(400).json({ success: false, message: 'Fayl nomi kiritilmadi' });
-      // If file exists, update it, else add
       const existing = list.find(i => i.name.toLowerCase() === name.toLowerCase());
       if (existing) {
         existing.content = content;
@@ -188,10 +118,7 @@ app.post('/api/sandbox/execute', (req, res) => {
         });
       }
       const fileItem = list.find(i => i.name.toLowerCase() === name.toLowerCase())!;
-      let successMsg = `✅ Tayyor, ser! ${location === 'Desktop' ? 'Ish stolingizda' : location + 'da'} "${name}" fayli yaratildi va kompyuteringizga avtomatik yuklandi.`;
-      if (name.toLowerCase().includes('optimizats') || name.toLowerCase().includes('tozalash') || name.toLowerCase().endsWith('.bat')) {
-        successMsg = `✅ Tayyor, ser! "${name}" skripti yaratildi va kompyuteringizga avtomatik yuklandi.\n\n⚡ Ushbu fayl kompyuteringiz keshini tozalash uchun tayyor.`;
-      }
+      const successMsg = `✅ Tayyor, ser! ${location === 'Desktop' ? 'Ish stolingizda' : location + 'da'} "${name}" fayli yaratildi.`;
       return res.json({
         success: true,
         message: successMsg,
@@ -220,14 +147,13 @@ app.post('/api/sandbox/execute', (req, res) => {
       }
       return res.json({
         success: true,
-        message: `✅ Tayyor, ser! "${name}" papkasi yaratildi va kompyuteringizga avtomatik yuklandi.`,
+        message: `✅ Tayyor, ser! "${name}" papkasi yaratildi.`,
         isRealWindows: false,
         path: getDisplayPath(name),
       });
     }
 
     case 'list_files': {
-      // Gather files in current folder
       const currentItems = list.map(i => ({
         name: i.name,
         type: i.type,
@@ -235,7 +161,6 @@ app.post('/api/sandbox/execute', (req, res) => {
         modifiedAt: i.modifiedAt,
       }));
 
-      // Gather all files across all folders in case current is empty or user asked generally
       const allItems: any[] = [];
       for (const [locKey, locList] of Object.entries(sandboxStorage)) {
         locList.forEach(item => {
@@ -250,13 +175,11 @@ app.post('/api/sandbox/execute', (req, res) => {
       }
 
       const items = (currentItems.length > 0 || allItems.length === 0) ? currentItems : allItems;
-
       let formatted = `Tayyor, ser! ${location === 'Desktop' ? 'Kompyuteringizda' : location + 'da'} ${items.length} ta fayl topildi:\n\n`;
       if (items.length === 0) {
-        formatted = `Hozircha kompyuteringizda birorta ham fayl yaratilmagan, ser.\nFayl yaratish uchun, masalan: "test.txt yarat" deb buyruq bering.`;
+        formatted = `Hozircha kompyuteringizda birorta ham fayl yaratilmagan, ser.\nFayl yaratish uchun: "test.txt yarat" deb buyruq bering.`;
       } else {
         formatted += items.map(it => `${it.type === 'folder' ? '📁' : '📄'} ${it.name}${it.location && it.location !== location ? ` (${it.location})` : ''}`).join('\n');
-        formatted += `\n\n💡 Faylni ochish uchun: "${items[0]?.name || 'fayl'} faylini och" deb buyruq bering, ser.`;
       }
 
       return res.json({
@@ -273,12 +196,10 @@ app.post('/api/sandbox/execute', (req, res) => {
       let foundLocation = location;
       const targetName = (name || '').trim();
 
-      // 1. Check in current folder
       if (targetName && targetName !== 'fayl' && targetName !== 'fayllar') {
         item = list.find(i => i.name.toLowerCase() === targetName.toLowerCase());
       }
 
-      // 2. Search in all other folders
       if (!item && targetName && targetName !== 'fayl' && targetName !== 'fayllar') {
         for (const [locKey, locList] of Object.entries(sandboxStorage)) {
           const found = locList.find(i => i.name.toLowerCase() === targetName.toLowerCase());
@@ -290,7 +211,6 @@ app.post('/api/sandbox/execute', (req, res) => {
         }
       }
 
-      // 3. If no specific name was given (e.g. "faylni och"), pick the most recent file
       if (!item) {
         for (const [locKey, locList] of Object.entries(sandboxStorage)) {
           if (locList.length > 0) {
@@ -305,8 +225,8 @@ app.post('/api/sandbox/execute', (req, res) => {
         return res.json({
           success: false,
           message: targetName && targetName !== 'fayl'
-            ? `❌ "${targetName}" fayli kompyuteringizda topilmadi, ser. Uni yaratish uchun: "${targetName} yarat" deb yozing.`
-            : `❌ Ochish uchun birorta fayl topilmadi, ser. Avval "test.txt yarat" deb fayl yarating.`,
+            ? `❌ "${targetName}" fayli topilmadi, ser.`
+            : `❌ Ochish uchun birorta fayl topilmadi, ser.`,
           isRealWindows: false,
         });
       }
@@ -342,14 +262,6 @@ app.post('/api/sandbox/execute', (req, res) => {
           isRealWindows: false,
         });
       }
-      const collision = list.find(i => i.name.toLowerCase() === (newName || '').toLowerCase());
-      if (collision) {
-        return res.json({
-          success: false,
-          message: `❌ Fayl nomini o'zgartirib bo'lmadi, ser.\nSabab: "${newName}" nomli fayl allaqachon mavjud.`,
-          isRealWindows: false,
-        });
-      }
       item.name = newName;
       item.modifiedAt = new Date().toISOString();
       return res.json({
@@ -381,19 +293,6 @@ app.post('/api/sandbox/execute', (req, res) => {
   }
 });
 
-// Gemini AI fallback & natural language conversational parser
-let aiClient: GoogleGenAI | null = null;
-function getGeminiClient(): GoogleGenAI | null {
-  if (!aiClient && process.env.GEMINI_API_KEY) {
-    try {
-      aiClient = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
-    } catch (e) {
-      console.warn('Failed to initialize GoogleGenAI:', e);
-    }
-  }
-  return aiClient;
-}
-
 // Direct serving and download for standalone jarvis.html
 app.get('/jarvis.html', (req, res) => {
   const localPublic = path.join(process.cwd(), 'public', 'jarvis.html');
@@ -413,66 +312,6 @@ app.get('/api/download/jarvis.html', (req, res) => {
     return res.download(localPublic, 'jarvis.html');
   }
   res.status(404).send('jarvis.html topilmadi');
-});
-
-app.post('/api/ai-parse', async (req, res) => {
-  const { prompt } = req.body;
-  if (!prompt || typeof prompt !== 'string') {
-    return res.json({ recognized: false });
-  }
-
-  const ai = getGeminiClient();
-  if (!ai) {
-    return res.json({ recognized: false });
-  }
-
-  try {
-    const systemInstruction = `Siz JARVIS - O'zbek tilidagi eng aqlli, tezkor va odobli shaxsiy yordamchisiz.
-Foydalanuvchining so'rovini tahlil qiling:
-
-1. Agar buyruq fayl/papka amali yoki vebsayt ochish bo'lsa:
-{
-  "recognized": true,
-  "action": {
-    "action": "create_file" | "create_folder" | "list_files" | "open_file" | "open_folder" | "rename_file" | "delete_file" | "open_website" | "open_download_modal",
-    "location": "Desktop" | "Documents" | "Downloads" | "Pictures" | "Videos",
-    "name": "fayl_nomi.txt",
-    "content": "matn",
-    "url": "https://...",
-    "title": "YouTube | Telegram | Google...",
-    "iconType": "youtube" | "telegram" | "instagram" | "google" | "web"
-  }
-}
-
-2. Agar foydalanuvchi suhbatlashsa, savol bersa, shikoyat qilsa ("har xil narsa yuklash kerak emas", "nega yaxshi ishlamayapti", "qandaysan", "sen kimsan"), yordam so'rasa:
-{
-  "recognized": true,
-  "action": {
-    "action": "chat_reply",
-    "reply": "O'zbek tilida samimiy, aniq va foydali javob. Tushuntiring: JARVIS o'rnatilgach 100% mustaqil ishlaydi, hech qanday ortiqcha narsalar (Node.js, terminal, skriptlar) yuklash mutlaqo shart emas. Fayllar, vebsaytlar va barcha buyruqlar to'g'ridan-to'g'ri ilovaning o'zida bir zumda bajariladi."
-  }
-}
-Faqat toza JSON formatida javob qaytaring.`;
-
-    const response = await ai.models.generateContent({
-      model: 'gemini-3.1-flash-lite',
-      contents: prompt,
-      config: {
-        systemInstruction,
-        responseMimeType: 'application/json',
-      },
-    });
-
-    const text = response.text?.trim();
-    if (text) {
-      const parsed = JSON.parse(text);
-      return res.json(parsed);
-    }
-  } catch (err: any) {
-    console.warn('Gemini /api/ai-parse error:', err?.message || err);
-  }
-
-  return res.json({ recognized: false });
 });
 
 async function startServer() {
