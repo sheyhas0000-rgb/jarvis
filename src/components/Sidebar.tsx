@@ -51,7 +51,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
   ];
 
   const bottomItems: { id: SidebarTab; label: string; icon: React.ReactNode; badge?: string }[] = [
-    { id: 'updates', label: 'Yangilanishlar', icon: <Bell className="w-5 h-5" />, badge: 'v1.2' },
+    { id: 'updates', label: 'Yangilanishlar', icon: <Bell className="w-5 h-5" />, badge: 'v1.3' },
     { id: 'profile', label: 'Profil', icon: <User className="w-5 h-5" /> },
   ];
 
@@ -110,7 +110,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                   <span className="font-bold tracking-wider text-cyan-300 text-sm flex items-center gap-1.5">
                     {agentName}
                     <span className="text-[10px] uppercase px-1.5 py-0.5 rounded bg-cyan-950/80 border border-cyan-500/30 text-cyan-400 font-mono">
-                      LOCAL
+                      v1.3 LOCAL
                     </span>
                   </span>
                   <span className="text-[11px] text-zinc-400 truncate flex items-center gap-1">

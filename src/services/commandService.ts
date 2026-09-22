@@ -87,7 +87,7 @@ export class CommandService {
               details: 'Rejim: Local Rule-Based Desktop Agent (No AI APIs)',
             };
           }
-          return await executeSystemCommand(parsed.commandId);
+          return await executeSystemCommand(parsed.commandId, args);
         }
 
         default:

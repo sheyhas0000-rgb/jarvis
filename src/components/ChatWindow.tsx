@@ -184,6 +184,10 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
           )}
 
           <div className="hidden sm:flex items-center gap-2">
+            <span className="text-[10px] px-2.5 py-0.5 rounded-full bg-cyan-950/80 border border-cyan-500/40 text-cyan-300 font-mono flex items-center gap-1.5 shadow-[0_0_12px_rgba(0,240,255,0.25)]">
+              <Sparkles className="w-3 h-3 text-cyan-400 animate-pulse" />
+              v1.3 LOCAL AGENT
+            </span>
             <span className="text-[10px] px-2 py-0.5 rounded-full bg-cyan-950/80 border border-cyan-500/40 text-cyan-300 font-mono flex items-center gap-1">
               <ShieldCheck className="w-3 h-3 text-emerald-400" />
               Local Whitelist
@@ -338,31 +342,126 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
               📄 Desktopda fayl yaratish
             </button>
             <button
-              onClick={() => handleQuickCommand('Chrome och')}
-              className="w-full text-left px-3 py-2 rounded-xl text-zinc-300 hover:text-cyan-300 hover:bg-cyan-950/60"
+              onClick={() => handleQuickCommand('Vaqt')}
+              className="w-full text-left px-3 py-2 rounded-xl text-zinc-300 hover:text-cyan-300 hover:bg-cyan-950/60 flex items-center justify-between"
             >
-              🚀 Chrome dasturini ochish
+              <span>⏰ Vaqt va sana</span>
+              <span className="text-[10px] text-zinc-500 font-mono">Tizim</span>
             </button>
             <button
-              onClick={() => handleQuickCommand('Downloads papkasini och')}
-              className="w-full text-left px-3 py-2 rounded-xl text-zinc-300 hover:text-cyan-300 hover:bg-cyan-950/60"
+              onClick={() => handleQuickCommand('Tizim holati')}
+              className="w-full text-left px-3 py-2 rounded-xl text-zinc-300 hover:text-cyan-300 hover:bg-cyan-950/60 flex items-center justify-between"
             >
-              📂 Downloads papkasini ochish
+              <span>📊 Tizim holati (CPU / RAM)</span>
+              <span className="text-[10px] text-zinc-500 font-mono">Status</span>
             </button>
             <button
-              onClick={() => handleQuickCommand('Kompyuterni blokla')}
-              className="w-full text-left px-3 py-2 rounded-xl text-zinc-300 hover:text-cyan-300 hover:bg-cyan-950/60"
+              onClick={() => handleQuickCommand('Batareya')}
+              className="w-full text-left px-3 py-2 rounded-xl text-zinc-300 hover:text-cyan-300 hover:bg-cyan-950/60 flex items-center justify-between"
             >
-              🔒 Kompyuterni bloklash
+              <span>🔋 Batareya & Quvvat</span>
+              <span className="text-[10px] text-zinc-500 font-mono">Power</span>
             </button>
             <button
-              onClick={() => handleQuickCommand('Keshni tozala')}
-              className="w-full text-left px-3 py-2 rounded-xl text-zinc-300 hover:text-cyan-300 hover:bg-cyan-950/60"
+              onClick={() => handleQuickCommand('Downloads och')}
+              className="w-full text-left px-3 py-2 rounded-xl text-zinc-300 hover:text-cyan-300 hover:bg-cyan-950/60 flex items-center justify-between"
             >
-              ⚡ Kesh tozalash skripti
+              <span>📂 Downloads papkasi</span>
+              <span className="text-[10px] text-zinc-500 font-mono">Explorer</span>
+            </button>
+            <button
+              onClick={() => handleQuickCommand('Desktop och')}
+              className="w-full text-left px-3 py-2 rounded-xl text-zinc-300 hover:text-cyan-300 hover:bg-cyan-950/60 flex items-center justify-between"
+            >
+              <span>📁 Desktop (Ish stoli)</span>
+              <span className="text-[10px] text-zinc-500 font-mono">Explorer</span>
+            </button>
+            <button
+              onClick={() => handleQuickCommand('Documents och')}
+              className="w-full text-left px-3 py-2 rounded-xl text-zinc-300 hover:text-cyan-300 hover:bg-cyan-950/60 flex items-center justify-between"
+            >
+              <span>📄 Documents (Hujjatlar)</span>
+              <span className="text-[10px] text-zinc-500 font-mono">Explorer</span>
+            </button>
+            <button
+              onClick={() => handleQuickCommand('Temporary files clean')}
+              className="w-full text-left px-3 py-2 rounded-xl text-zinc-300 hover:text-cyan-300 hover:bg-cyan-950/60 flex items-center justify-between"
+            >
+              <span>🧹 Kesh tozalash (%temp%)</span>
+              <span className="text-[10px] text-cyan-400 font-mono">Optimizatsiya</span>
+            </button>
+            <button
+              onClick={() => handleQuickCommand('Ovoz 50')}
+              className="w-full text-left px-3 py-2 rounded-xl text-zinc-300 hover:text-cyan-300 hover:bg-cyan-950/60 flex items-center justify-between"
+            >
+              <span>🔊 Ovozni 50% qilish</span>
+              <span className="text-[10px] text-zinc-500 font-mono">Volume</span>
+            </button>
+            <button
+              onClick={() => handleQuickCommand('Mute')}
+              className="w-full text-left px-3 py-2 rounded-xl text-zinc-300 hover:text-cyan-300 hover:bg-cyan-950/60 flex items-center justify-between"
+            >
+              <span>🔇 Ovozni o‘chirish (Mute)</span>
+              <span className="text-[10px] text-zinc-500 font-mono">Audio</span>
+            </button>
+            <button
+              onClick={() => handleQuickCommand('YouTube och')}
+              className="w-full text-left px-3 py-2 rounded-xl text-zinc-300 hover:text-cyan-300 hover:bg-cyan-950/60 flex items-center justify-between"
+            >
+              <span>🎬 YouTube ochish</span>
+              <span className="text-[10px] text-rose-400 font-mono">Web</span>
+            </button>
+            <button
+              onClick={() => handleQuickCommand('Telegram och')}
+              className="w-full text-left px-3 py-2 rounded-xl text-zinc-300 hover:text-cyan-300 hover:bg-cyan-950/60 flex items-center justify-between"
+            >
+              <span>✈️ Telegram Web</span>
+              <span className="text-[10px] text-blue-400 font-mono">Web</span>
+            </button>
+            <button
+              onClick={() => handleQuickCommand('Lock PC')}
+              className="w-full text-left px-3 py-2 rounded-xl text-zinc-300 hover:text-cyan-300 hover:bg-cyan-950/60 flex items-center justify-between"
+            >
+              <span>🔒 Kompyuterni bloklash</span>
+              <span className="text-[10px] text-amber-400 font-mono">Lock</span>
+            </button>
+            <button
+              onClick={() => handleQuickCommand('Clipboard')}
+              className="w-full text-left px-3 py-2 rounded-xl text-zinc-300 hover:text-cyan-300 hover:bg-cyan-950/60 flex items-center justify-between"
+            >
+              <span>📋 Clipboard (Bufer)</span>
+              <span className="text-[10px] text-zinc-500 font-mono">Memory</span>
             </button>
           </div>
         )}
+
+        {/* Quick Action Chips Row */}
+        <div className="flex items-center gap-1.5 overflow-x-auto pb-2 scrollbar-none max-w-4xl mx-auto">
+          {[
+            { label: '⏰ Vaqt', cmd: 'Vaqt' },
+            { label: '📊 Tizim', cmd: 'Tizim holati' },
+            { label: '🔋 Batareya', cmd: 'Batareya' },
+            { label: '📂 Downloads', cmd: 'Downloads och' },
+            { label: '📁 Desktop', cmd: 'Desktop och' },
+            { label: '📄 Documents', cmd: 'Documents och' },
+            { label: '🧹 Kesh tozalash', cmd: 'Temporary files clean' },
+            { label: '🔊 Ovoz 50%', cmd: 'Ovoz 50' },
+            { label: '🔇 Mute', cmd: 'Mute' },
+            { label: '🎬 YouTube', cmd: 'YouTube och' },
+            { label: '✈️ Telegram', cmd: 'Telegram och' },
+            { label: '🔒 Lock PC', cmd: 'Lock PC' },
+            { label: '📋 Clipboard', cmd: 'Clipboard' },
+          ].map(chip => (
+            <button
+              key={chip.cmd}
+              type="button"
+              onClick={() => handleQuickCommand(chip.cmd)}
+              className="px-2.5 py-1 rounded-lg bg-[#0c1322] border border-cyan-900/40 hover:border-cyan-500/50 hover:bg-cyan-950/50 text-zinc-300 hover:text-cyan-300 transition-all whitespace-nowrap shrink-0 text-[11px] font-mono shadow-sm active:scale-95"
+            >
+              {chip.label}
+            </button>
+          ))}
+        </div>
 
         <form onSubmit={handleSend} className="flex items-center gap-2 max-w-4xl mx-auto">
           {/* Plus / Quick Actions Button */}

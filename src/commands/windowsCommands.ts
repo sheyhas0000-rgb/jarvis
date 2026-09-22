@@ -3,20 +3,24 @@ import { CommandExecutionResult, LocalCommandDefinition, ApprovedLocation } from
 export const WINDOWS_COMMANDS_META: LocalCommandDefinition[] = [
   {
     id: 'win_lock',
-    name: 'Kompyuterni bloklash',
+    name: 'Kompyuterni bloklash (Lock PC)',
     category: 'windows',
     pluginId: 'windows_plugin',
-    keywords: ['kompyuterni blokla', 'ekranni blokla', 'blokla', 'lock', 'kompyuterni qulfla', 'ekranni qulfla', 'lock computer', 'qulflash'],
+    keywords: [
+      'kompyuterni blokla', 'ekranni blokla', 'blokla', 'lock', 'lock pc', 'pc lock',
+      'kompyuterni qulfla', 'kompyuterni qulflash', 'ekranni qulfla', 'ekranni qulflash',
+      'lock computer', 'qulflash'
+    ],
     description: 'Windows ish stantsiyasini bir zumda qulflaydi (Lock Workstation).',
-    example: 'Kompyuterni blokla',
+    example: 'Lock PC',
     requiresPermission: 'windows_commands',
   },
   {
     id: 'win_shutdown',
-    name: 'Kompyuterni o‘chirish',
+    name: 'Kompyuterni o‘chirish (Shutdown)',
     category: 'windows',
     pluginId: 'windows_plugin',
-    keywords: ['kompyuterni ochir', "kompyuterni o'chir", 'kompyuterni o‘chir', 'shutdown', 'kompyuterni yop', 'tizimni o‘chir'],
+    keywords: ['kompyuterni ochir', "kompyuterni o'chir", 'kompyuterni o‘chir', 'shutdown', 'kompyuterni yop', 'tizimni ochir', "tizimni o'chir", 'tizimni o‘chir'],
     description: 'Windows tizimini xavfsiz o‘chiradi (Shutdown).',
     example: 'Kompyuterni o‘chir',
     requiresPermission: 'windows_commands',
@@ -24,7 +28,7 @@ export const WINDOWS_COMMANDS_META: LocalCommandDefinition[] = [
   },
   {
     id: 'win_restart',
-    name: 'Kompyuterni qayta ishga tushirish',
+    name: 'Kompyuterni qayta ishga tushirish (Restart)',
     category: 'windows',
     pluginId: 'windows_plugin',
     keywords: ['restart', 'qayta ishga tushir', 'kompyuterni restart qil', 'qayta yukla', 'reboot'],
@@ -35,18 +39,18 @@ export const WINDOWS_COMMANDS_META: LocalCommandDefinition[] = [
   },
   {
     id: 'win_open_folder',
-    name: 'Papkalarni ochish',
+    name: 'Papkalarni ochish (Explorer)',
     category: 'windows',
     pluginId: 'windows_plugin',
     keywords: [
-      'downloads papkasini och', 'downloads och', 'yuklamalar papkasini och', 'yuklamalarni och',
-      'desktopni och', 'ish stolini och', 'desktop papkasini och',
-      'documents papkasini och', 'hujjatlar papkasini och', 'hujjatlarni och',
-      'pictures papkasini och', 'rasmlar papkasini och', 'rasmlarni och',
-      'videos papkasini och', 'videolarni och', 'explorer och'
+      'downloads papkasini och', 'downloads och', 'downloadsni och', 'yuklamalar papkasini och', 'yuklamalarni och', 'yuklamalar och',
+      'desktopni och', 'desktop och', 'ish stolini och', 'ish stoli och', 'desktop papkasini och',
+      'documents papkasini och', 'documents och', 'documentsni och', 'hujjatlar papkasini och', 'hujjatlarni och', 'hujjatlar och',
+      'pictures papkasini och', 'pictures och', 'picturesni och', 'rasmlar papkasini och', 'rasmlarni och', 'rasmlar och',
+      'videos papkasini och', 'videos och', 'videosni och', 'videolarni och', 'videolar och', 'explorer och'
     ],
     description: 'Windows File Explorer orqali standart papkalarni ochadi.',
-    example: 'Downloads papkasini och',
+    example: 'Downloads och',
     requiresPermission: 'file_access',
   },
   {
@@ -54,9 +58,25 @@ export const WINDOWS_COMMANDS_META: LocalCommandDefinition[] = [
     name: 'Ovoz balandligini sozlash',
     category: 'windows',
     pluginId: 'system_plugin',
-    keywords: ['ovoz', 'volume', 'ovozni balandlat', 'ovozni pasaytir', 'tovush', 'ovoz 50', 'ovoz 100', 'ovozni o‘chir', 'mute'],
+    keywords: [
+      'ovoz', 'volume', 'ovozni balandlat', 'ovozni pasaytir', 'tovush', 
+      'ovoz 50', 'ovoz 100', 'ovoz 0', 'volume up', 'volume down', 'ovoz sozlash'
+    ],
     description: 'Windows tizim audio dinamiklari balandligini o‘zgartiradi.',
     example: 'Ovozi 50 ga qo‘y',
+    requiresPermission: 'system_settings',
+  },
+  {
+    id: 'win_mute',
+    name: 'Ovozni o‘chirish / yoqish (Mute / Unmute)',
+    category: 'windows',
+    pluginId: 'system_plugin',
+    keywords: [
+      'mute', 'unmute', 'ovozni ochir', "ovozni o'chir", 'ovozni o‘chir',
+      'ovozni ochirish', 'tovushni ochir', "tovushni o'chir", 'ovozni yoq', 'ovozni yoqish'
+    ],
+    description: 'Windows tizim audiosini butunlay o‘chiradi yoki qayta yoqadi (Mute toggle).',
+    example: 'Mute',
     requiresPermission: 'system_settings',
   },
   {
@@ -76,7 +96,7 @@ export async function executeWindowsCommand(commandId: string, args: Record<stri
     case 'win_lock': {
       return {
         success: true,
-        message: '🔒 Bajarildi, ser! Kompyuter ekrani bloklandi.',
+        message: '🔒 Bajarildi, ser! Kompyuter ekrani bloklandi (Workstation Locked).',
         details: 'Windows API: LockWorkStation() chaqirildi.\nKompyuter xavfsiz blokirovka holatiga o‘tdi.',
         windowsCommand: 'rundll32.exe user32.dll,LockWorkStation',
       };
@@ -114,7 +134,7 @@ export async function executeWindowsCommand(commandId: string, args: Record<stri
       return {
         success: true,
         message: `📂 Bajarildi, ser! Windows Explorer orqali "${location}" papkasi ochildi.`,
-        details: `Yo‘l: ${path}\nStatus: Explorer oynasi faollashtirildi.`,
+        details: `Yo‘l: ${path}\nStatus: Explorer darchasi muvaffaqiyatli faollashtirildi.`,
         windowsCommand: `explorer.exe "${path}"`,
       };
     }
@@ -126,6 +146,18 @@ export async function executeWindowsCommand(commandId: string, args: Record<stri
         message: `🔊 Bajarildi, ser! Tizim audio balandligi ${level}% ga o‘rnatildi.`,
         details: `Master Volume: ${level}%\nWindows Core Audio API orqali amalga oshirildi.`,
         windowsCommand: `powershell -c "(New-Object -ComObject WScript.Shell).SendKeys([char]174)"`,
+      };
+    }
+
+    case 'win_mute': {
+      const isMute = args.isMute !== undefined ? args.isMute : true;
+      return {
+        success: true,
+        message: isMute 
+          ? '🔇 Bajarildi, ser! Tizim audio ovozi o‘chirildi (Mute faol).' 
+          : '🔊 Bajarildi, ser! Tizim audio ovozi yoqildi (Unmute faol).',
+        details: 'Windows Core Audio: VK_VOLUME_MUTE (0xAD) orqali ovoz holati o‘zgartirildi.',
+        windowsCommand: `powershell -c "(New-Object -ComObject WScript.Shell).SendKeys([char]173)"`,
       };
     }
 

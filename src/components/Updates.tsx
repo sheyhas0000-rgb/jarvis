@@ -4,9 +4,26 @@ import { Bell, CheckCircle2, ShieldCheck, Sparkles, Terminal, HardDrive } from '
 export const Updates: React.FC = () => {
   const versions = [
     {
-      version: 'v1.2.0',
-      tag: 'Hozirgi barqaror versiya',
+      version: 'v1.3.0',
+      tag: 'JARVIS v1.3 Mini Update',
       current: true,
+      date: 'Mart 2026',
+      changes: [
+        { title: 'Vaqt va Aniq Sana', desc: 'Joriy vaqt, hafta kuni, sana va Toshkent mintaqasi bo‘yicha to‘liq hisobot.' },
+        { title: 'CPU, RAM va Batareya Statusi', desc: 'Haqiqiy xotira taqsimoti, protsessor yadrolari, batareya quvvat darajasi (%) va zaryadlash holati diagnostikasi.' },
+        { title: 'Standart Windows Papkalari', desc: 'Downloads, Desktop, Documents, Pictures va Videos papkalarini bitta buyruq bilan Explorer orqali ochish.' },
+        { title: 'Temporary Files Clean', desc: 'Windows vaqtinchalik fayllari (%temp%, Windows Temp) va DNS keshini tozalovchi "jarvis_cleaner.bat" avtonom tozalash mexanizmi.' },
+        { title: 'Ovoz va Mute Boshqaruvi', desc: 'Ovoz balandligini aniq foizga sozlash (Volume 0-100%) hamda ovozni butunlay o‘chirish / yoqish (Mute toggle).' },
+        { title: 'YouTube, Google, Telegram & Instagram', desc: 'Brauzer orqali YouTube, Google, Telegram Web va Instagram sahifalarini bir zumda ochish.' },
+        { title: 'Lock PC, Restart va Shutdown', desc: 'Kompyuter ekranini bloklash (Lock Workstation) va xavfsiz tasdiq talab qiluvchi qayta yuklash / o‘chirish buyruqlari.' },
+        { title: 'Clipboard Boshqaruvi', desc: 'Windows almashish buferidagi (Clipboard) matnni ko‘rish yoki uni tozalash imkoniyati.' },
+        { title: 'Zamonaviy v1.3 Interfeys', desc: 'JARVIS v1.3 badge, silliq o‘tish animatsiyalari, tezkor tugmalar va yangilangan boshqaruv paneli.' },
+      ],
+    },
+    {
+      version: 'v1.2.0',
+      tag: 'Oldingi barqaror versiya',
+      current: false,
       date: 'Mart 2026',
       changes: [
         { title: '100% Oflayn Local Desktop Agent', desc: 'Barcha tashqi AI/LLM integratsiyalari butunlay chiqarib tashlandi. Tizim internetga ulanmasdan, faqat lokal rule-based command parser orqali ishlaydi.' },
@@ -57,7 +74,7 @@ export const Updates: React.FC = () => {
       <div className="p-4 rounded-2xl bg-cyan-950/30 border border-cyan-500/30 flex items-center gap-3">
         <Sparkles className="w-5 h-5 text-cyan-400 shrink-0" />
         <div className="text-xs text-cyan-200">
-          <strong>Lokal Tizim:</strong> Siz eng so‘nggi <span className="font-mono text-cyan-300">v1.2.0</span> versiyasidasiz. Yangilanishlar avtonom tarzda lokal fayl tizimida saqlanadi.
+          <strong>Lokal Tizim:</strong> Siz eng so‘nggi <span className="font-mono text-cyan-300">v1.3.0</span> versiyasidasiz. Yangilanishlar avtonom tarzda lokal fayl tizimida saqlanadi.
         </div>
       </div>
 

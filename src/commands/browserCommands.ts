@@ -6,7 +6,7 @@ export const BROWSER_COMMANDS_META: LocalCommandDefinition[] = [
     name: 'YouTube',
     category: 'browser',
     pluginId: 'browser_plugin',
-    keywords: ['youtube', 'youtube och', 'youtubega kir', 'youtube.com', 'musiqa qoy', "musiqa qo'y", 'video och', 'youtube ochish'],
+    keywords: ['youtube', 'youtube och', 'youtubeni och', 'youtubega kir', 'youtube.com', 'musiqa qoy', "musiqa qo'y", 'video och', 'youtube ochish'],
     description: 'YouTube video portalini brauzerda ochadi.',
     example: 'YouTube och',
     requiresPermission: 'browser_control',
@@ -16,7 +16,7 @@ export const BROWSER_COMMANDS_META: LocalCommandDefinition[] = [
     name: 'Telegram Web',
     category: 'browser',
     pluginId: 'browser_plugin',
-    keywords: ['telegram', 'telegram och', 'telegramga kir', 'tg och', 'telegram web'],
+    keywords: ['telegram', 'telegram och', 'telegramni och', 'telegramga kir', 'tg och', 'tgni och', 'telegram web'],
     description: 'Telegram messenjerining veb versiyasini ochadi.',
     example: 'Telegram och',
     requiresPermission: 'browser_control',
@@ -26,9 +26,19 @@ export const BROWSER_COMMANDS_META: LocalCommandDefinition[] = [
     name: 'Google Qidiruv',
     category: 'browser',
     pluginId: 'browser_plugin',
-    keywords: ['google', 'google och', 'googleda qidir', 'qidir', 'qidiruv', 'internetdan top'],
+    keywords: ['google', 'google och', 'googleni och', 'googleda qidir', 'qidir', 'qidiruv', 'internetdan top', 'google search'],
     description: 'Google qidiruv tizimini ochadi yoki so‘rovni qidiradi.',
     example: 'Google da qidir: O‘zbekiston yangiliklari',
+    requiresPermission: 'browser_control',
+  },
+  {
+    id: 'browser_instagram',
+    name: 'Instagram Web',
+    category: 'browser',
+    pluginId: 'browser_plugin',
+    keywords: ['instagram', 'instagram och', 'instagramni och', 'insta och', 'instani och', 'instagramga kir', 'insta'],
+    description: 'Instagram ijtimoiy tarmog‘i veb saytini ochadi.',
+    example: 'Instagram och',
     requiresPermission: 'browser_control',
   },
   {
@@ -88,6 +98,24 @@ export async function executeBrowserCommand(commandId: string, args: Record<stri
           iconType: 'telegram',
         },
         windowsCommand: `start chrome.exe "https://web.telegram.org"`,
+      };
+    }
+
+    case 'browser_instagram': {
+      const url = 'https://www.instagram.com';
+      try {
+        window.open(url, '_blank');
+      } catch (e) {}
+      return {
+        success: true,
+        message: '📸 Bajarildi, ser! Instagram sahifasi ochildi.',
+        details: `URL: ${url}\nPlatforma: Instagram Web`,
+        webLink: {
+          title: 'Instagram',
+          url,
+          iconType: 'browser',
+        },
+        windowsCommand: `start chrome.exe "https://www.instagram.com"`,
       };
     }
 
