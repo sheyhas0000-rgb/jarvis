@@ -13,7 +13,8 @@ import {
   ChevronRight,
   ShieldCheck
 } from 'lucide-react';
-import { SidebarTab, ChatSession } from '../types';
+import { SidebarTab, ChatSession, SupportedLanguage } from '../types';
+import { t } from '../utils/i18n';
 
 interface SidebarProps {
   currentTab: SidebarTab;
@@ -25,6 +26,7 @@ interface SidebarProps {
   activeChatId: string;
   onSelectChat: (id: string) => void;
   agentName: string;
+  language: SupportedLanguage;
   isMobileOpen?: boolean;
   onCloseMobile?: () => void;
 }
@@ -39,20 +41,23 @@ export const Sidebar: React.FC<SidebarProps> = ({
   activeChatId,
   onSelectChat,
   agentName,
+  language,
   isMobileOpen = false,
   onCloseMobile,
 }) => {
+  const strings = t(language);
+
   const navItems: { id: SidebarTab; label: string; icon: React.ReactNode; badge?: string }[] = [
-    { id: 'settings', label: 'Sozlamalar', icon: <SettingsIcon className="w-5 h-5" /> },
-    { id: 'all_chats', label: 'Chatlar', icon: <MessageSquare className="w-5 h-5" /> },
-    { id: 'recent_chats', label: 'So‘nggi chatlar', icon: <Clock className="w-5 h-5" /> },
-    { id: 'plugins', label: 'Pluginlar', icon: <Plug className="w-5 h-5" /> },
-    { id: 'projects', label: 'Loyihalar', icon: <FolderKanban className="w-5 h-5" /> },
+    { id: 'settings', label: strings.nav.settings, icon: <SettingsIcon className="w-5 h-5" /> },
+    { id: 'all_chats', label: strings.nav.all_chats, icon: <MessageSquare className="w-5 h-5" /> },
+    { id: 'recent_chats', label: strings.nav.recent_chats, icon: <Clock className="w-5 h-5" /> },
+    { id: 'plugins', label: strings.nav.plugins, icon: <Plug className="w-5 h-5" /> },
+    { id: 'projects', label: strings.nav.projects, icon: <FolderKanban className="w-5 h-5" /> },
   ];
 
   const bottomItems: { id: SidebarTab; label: string; icon: React.ReactNode; badge?: string }[] = [
-    { id: 'updates', label: 'Yangilanishlar', icon: <Bell className="w-5 h-5" />, badge: 'v1.3' },
-    { id: 'profile', label: 'Profil', icon: <User className="w-5 h-5" /> },
+    { id: 'updates', label: strings.nav.updates, icon: <Bell className="w-5 h-5" />, badge: 'v1.4' },
+    { id: 'profile', label: strings.nav.profile, icon: <User className="w-5 h-5" /> },
   ];
 
   const handleNavClick = (tab: SidebarTab) => {
@@ -110,12 +115,12 @@ export const Sidebar: React.FC<SidebarProps> = ({
                   <span className="font-bold tracking-wider text-cyan-300 text-sm flex items-center gap-1.5">
                     {agentName}
                     <span className="text-[10px] uppercase px-1.5 py-0.5 rounded bg-cyan-950/80 border border-cyan-500/30 text-cyan-400 font-mono">
-                      v1.3 LOCAL
+                      v1.4 LOCAL
                     </span>
                   </span>
                   <span className="text-[11px] text-zinc-400 truncate flex items-center gap-1">
                     <ShieldCheck className="w-3 h-3 text-emerald-400" />
-                    No AI • 100% Oflayn
+                    {strings.nav.offlineMode}
                   </span>
                 </div>
               )}
@@ -125,7 +130,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
             <button
               onClick={onToggleCollapse}
               className="hidden md:flex items-center justify-center w-7 h-7 rounded-lg text-zinc-400 hover:text-cyan-300 hover:bg-cyan-950/40 border border-transparent hover:border-cyan-800/40 transition-all"
-              title={collapsed ? "Yon panelni ochish" : "Yon panelni yig'ish"}
+              title={collapsed ? strings.nav.expand : strings.nav.collapse}
             >
               {collapsed ? <ChevronRight className="w-4 h-4" /> : <ChevronLeft className="w-4 h-4" />}
             </button>
@@ -142,10 +147,10 @@ export const Sidebar: React.FC<SidebarProps> = ({
                 shadow-[0_0_15px_rgba(0,240,255,0.1)] hover:shadow-[0_0_20px_rgba(0,240,255,0.25)]
                 transition-all active:scale-98
               `}
-              title="Yangi chat"
+              title={strings.nav.newChat}
             >
               <Plus className="w-5 h-5 text-cyan-400 shrink-0" />
-              {!collapsed && <span>Yangi chat</span>}
+              {!collapsed && <span>{strings.nav.newChat}</span>}
             </button>
           </div>
 
@@ -187,13 +192,13 @@ export const Sidebar: React.FC<SidebarProps> = ({
               <div className="pt-4 pb-2">
                 <div className="flex items-center justify-between px-2 mb-2">
                   <span className="text-[11px] font-semibold tracking-wider text-zinc-500 uppercase">
-                    So‘nggi seanslar
+                    {strings.nav.recent_chats}
                   </span>
                   <button 
                     onClick={() => handleNavClick('all_chats')}
                     className="text-[11px] text-cyan-400/80 hover:text-cyan-300"
                   >
-                    Barchasi
+                    {language === 'en' ? 'All' : language === 'ru' ? 'Все' : 'Barchasi'}
                   </button>
                 </div>
                 <div className="space-y-1">
@@ -212,7 +217,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                         `}
                       >
                         <MessageSquare className="w-3.5 h-3.5 shrink-0 opacity-60" />
-                        <span className="truncate flex-1">{c.title || 'Nomsiz chat'}</span>
+                        <span className="truncate flex-1">{c.title || strings.chat.untitledChat}</span>
                       </button>
                     );
                   })}
@@ -221,11 +226,8 @@ export const Sidebar: React.FC<SidebarProps> = ({
             )}
           </div>
 
-          {/* Divider */}
-          <div className="h-px bg-cyan-900/20 my-1 mx-3" />
-
-          {/* Bottom Items (Updates & Profile) */}
-          <div className="p-3 space-y-1">
+          {/* Bottom Items */}
+          <div className="p-3 border-t border-cyan-900/20 space-y-1">
             {bottomItems.map(item => {
               const isActive = currentTab === item.id;
               return (
@@ -233,8 +235,8 @@ export const Sidebar: React.FC<SidebarProps> = ({
                   key={item.id}
                   onClick={() => handleNavClick(item.id)}
                   className={`
-                    w-full flex items-center gap-3 px-3 py-2 rounded-xl text-sm font-medium
-                    transition-all group
+                    w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium
+                    transition-all group relative
                     ${isActive 
                       ? 'bg-cyan-500/15 text-cyan-300 border border-cyan-500/30' 
                       : 'text-zinc-400 hover:text-zinc-200 hover:bg-zinc-800/40 border border-transparent'}
@@ -249,7 +251,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                     <span className="truncate flex-1 text-left">{item.label}</span>
                   )}
                   {!collapsed && item.badge && (
-                    <span className="text-[10px] px-1.5 py-0.5 rounded bg-cyan-950 border border-cyan-500/30 text-cyan-400">
+                    <span className="text-[10px] px-1.5 py-0.5 rounded bg-cyan-950 border border-cyan-500/30 text-cyan-400 font-mono font-bold">
                       {item.badge}
                     </span>
                   )}

@@ -56,7 +56,7 @@ export const DEFAULT_PERMISSIONS: PermissionSettings = {
 
 export const DEFAULT_SETTINGS: AppSettings = {
   agentName: 'JARVIS',
-  language: 'uz_lat',
+  language: 'uz',
   theme: 'dark',
   animations: true,
   soundEnabled: true,

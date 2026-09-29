@@ -9,7 +9,7 @@ export const WINDOWS_COMMANDS_META: LocalCommandDefinition[] = [
     keywords: [
       'kompyuterni blokla', 'ekranni blokla', 'blokla', 'lock', 'lock pc', 'pc lock',
       'kompyuterni qulfla', 'kompyuterni qulflash', 'ekranni qulfla', 'ekranni qulflash',
-      'lock computer', 'qulflash'
+      'lock computer', 'qulflash', 'заблокировать пк', 'заблокировать компьютер', 'блокировка пк'
     ],
     description: 'Windows ish stantsiyasini bir zumda qulflaydi (Lock Workstation).',
     example: 'Lock PC',
@@ -20,7 +20,10 @@ export const WINDOWS_COMMANDS_META: LocalCommandDefinition[] = [
     name: 'Kompyuterni o‘chirish (Shutdown)',
     category: 'windows',
     pluginId: 'windows_plugin',
-    keywords: ['kompyuterni ochir', "kompyuterni o'chir", 'kompyuterni o‘chir', 'shutdown', 'kompyuterni yop', 'tizimni ochir', "tizimni o'chir", 'tizimni o‘chir'],
+    keywords: [
+      'kompyuterni ochir', "kompyuterni o'chir", 'kompyuterni o‘chir', 'shutdown', 'turn off pc', 'kompyuterni yop',
+      'tizimni ochir', "tizimni o'chir", 'tizimni o‘chir', 'выключить пк', 'выключить компьютер', 'выключение'
+    ],
     description: 'Windows tizimini xavfsiz o‘chiradi (Shutdown).',
     example: 'Kompyuterni o‘chir',
     requiresPermission: 'windows_commands',
@@ -31,7 +34,10 @@ export const WINDOWS_COMMANDS_META: LocalCommandDefinition[] = [
     name: 'Kompyuterni qayta ishga tushirish (Restart)',
     category: 'windows',
     pluginId: 'windows_plugin',
-    keywords: ['restart', 'qayta ishga tushir', 'kompyuterni restart qil', 'qayta yukla', 'reboot'],
+    keywords: [
+      'restart', 'qayta ishga tushir', 'kompyuterni restart qil', 'qayta yukla', 'reboot',
+      'перезагрузка', 'перезагрузить пк', 'перезагрузить компьютер'
+    ],
     description: 'Windows operatsion tizimini qayta ishga tushiradi (Reboot).',
     example: 'Kompyuterni qayta ishga tushir',
     requiresPermission: 'windows_commands',
@@ -47,7 +53,9 @@ export const WINDOWS_COMMANDS_META: LocalCommandDefinition[] = [
       'desktopni och', 'desktop och', 'ish stolini och', 'ish stoli och', 'desktop papkasini och',
       'documents papkasini och', 'documents och', 'documentsni och', 'hujjatlar papkasini och', 'hujjatlarni och', 'hujjatlar och',
       'pictures papkasini och', 'pictures och', 'picturesni och', 'rasmlar papkasini och', 'rasmlarni och', 'rasmlar och',
-      'videos papkasini och', 'videos och', 'videosni och', 'videolarni och', 'videolar och', 'explorer och'
+      'videos papkasini och', 'videos och', 'videosni och', 'videolarni och', 'videolar och', 'explorer och',
+      'open downloads', 'open desktop', 'open documents', 'open pictures', 'open videos',
+      'открыть загрузки', 'открыть рабочий стол', 'открыть документы', 'открыть фото', 'открыть видео'
     ],
     description: 'Windows File Explorer orqali standart papkalarni ochadi.',
     example: 'Downloads och',

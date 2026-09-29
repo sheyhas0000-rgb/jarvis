@@ -15,9 +15,19 @@ import {
   Bot,
   User,
   Sparkles,
-  ShieldAlert
+  Calculator,
+  Clock,
+  FileText,
+  Palette,
+  Folder,
+  Activity,
+  Settings as SettingsIcon,
+  Globe,
+  LayoutGrid,
+  Calendar
 } from 'lucide-react';
-import { ChatSession, ChatMessage, PendingPermission } from '../types';
+import { ChatSession, SupportedLanguage, WindowsAppId } from '../types';
+import { t } from '../utils/i18n';
 
 interface ChatWindowProps {
   chat: ChatSession;
@@ -26,8 +36,8 @@ interface ChatWindowProps {
   onRenameChat: (newTitle: string) => void;
   agentName: string;
   isProcessing: boolean;
-  onConfirmPendingAction?: (pending: PendingPermission) => void;
-  pendingPermission?: PendingPermission | null;
+  language: SupportedLanguage;
+  onOpenApp?: (appId: WindowsAppId) => void;
 }
 
 export const ChatWindow: React.FC<ChatWindowProps> = ({
@@ -37,16 +47,19 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
   onRenameChat,
   agentName,
   isProcessing,
-  onConfirmPendingAction,
-  pendingPermission,
+  language,
+  onOpenApp,
 }) => {
   const [input, setInput] = useState('');
   const [isEditingTitle, setIsEditingTitle] = useState(false);
   const [titleValue, setTitleValue] = useState(chat.title);
   const [isListening, setIsListening] = useState(false);
   const [showQuickMenu, setShowQuickMenu] = useState(false);
+  const [showAppsBar, setShowAppsBar] = useState(true);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const recognitionRef = useRef<any>(null);
+
+  const strings = t(language);
 
   useEffect(() => {
     setTitleValue(chat.title);
@@ -56,14 +69,22 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [chat.messages, isProcessing]);
 
-  // Web Speech API Voice Input
+  // Web Speech API Voice Input matching selected language
   useEffect(() => {
     const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
     if (SpeechRecognition) {
       const recognition = new SpeechRecognition();
       recognition.continuous = false;
       recognition.interimResults = false;
-      recognition.lang = 'uz-UZ';
+      
+      // Match active language
+      if (language === 'en') {
+        recognition.lang = 'en-US';
+      } else if (language === 'ru') {
+        recognition.lang = 'ru-RU';
+      } else {
+        recognition.lang = 'uz-UZ';
+      }
 
       recognition.onresult = (event: any) => {
         const transcript = event.results[0][0].transcript;
@@ -84,11 +105,11 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
 
       recognitionRef.current = recognition;
     }
-  }, [onSendMessage]);
+  }, [onSendMessage, language]);
 
   const toggleVoice = () => {
     if (!recognitionRef.current) {
-      alert('Brauzeringiz ovozli tanib olishni qo‘llab-quvvatlamaydi.');
+      alert(strings.chat.voiceNotSupported);
       return;
     }
 
@@ -126,15 +147,18 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
     setIsEditingTitle(false);
   };
 
-  const quickChips = [
-    'Chrome och',
-    'Notepad och',
-    'Calculator och',
-    'Downloads papkasini och',
-    'Desktopda test.txt yarat',
-    'Kompyuterni blokla',
-    'Tizim holati',
-    'Keshni tozala',
+  const appLaunchItems: { id: WindowsAppId; label: string; icon: React.ReactNode; cmd: string }[] = [
+    { id: 'calculator', label: strings.apps.calculator.name, icon: <Calculator className="w-3.5 h-3.5 text-cyan-400" />, cmd: 'open calculator' },
+    { id: 'clock', label: strings.apps.clock.name, icon: <Clock className="w-3.5 h-3.5 text-emerald-400" />, cmd: 'open clock' },
+    { id: 'cmd', label: strings.apps.cmd.name, icon: <Terminal className="w-3.5 h-3.5 text-zinc-300" />, cmd: 'open cmd' },
+    { id: 'notepad', label: strings.apps.notepad.name, icon: <FileText className="w-3.5 h-3.5 text-blue-400" />, cmd: 'open notepad' },
+    { id: 'paint', label: strings.apps.paint.name, icon: <Palette className="w-3.5 h-3.5 text-purple-400" />, cmd: 'open paint' },
+    { id: 'explorer', label: strings.apps.explorer.name, icon: <Folder className="w-3.5 h-3.5 text-amber-400" />, cmd: 'open file explorer' },
+    { id: 'taskmgr', label: strings.apps.taskmgr.name, icon: <Activity className="w-3.5 h-3.5 text-rose-400" />, cmd: 'open task manager' },
+    { id: 'settings', label: strings.apps.settings.name, icon: <SettingsIcon className="w-3.5 h-3.5 text-sky-400" />, cmd: 'open settings' },
+    { id: 'browser', label: strings.apps.browser.name, icon: <Globe className="w-3.5 h-3.5 text-indigo-400" />, cmd: 'open browser' },
+    { id: 'control', label: strings.apps.control.name, icon: <LayoutGrid className="w-3.5 h-3.5 text-teal-400" />, cmd: 'open control panel' },
+    { id: 'calendar', label: strings.apps.calendar.name, icon: <Calendar className="w-3.5 h-3.5 text-cyan-400" />, cmd: 'open calendar' },
   ];
 
   return (
@@ -171,12 +195,12 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
           ) : (
             <div className="flex items-center gap-2 truncate">
               <h2 className="text-sm md:text-base font-bold text-zinc-100 truncate">
-                {chat.title || 'Nomsiz seans'}
+                {chat.title || strings.chat.untitledChat}
               </h2>
               <button
                 onClick={() => setIsEditingTitle(true)}
                 className="p-1 rounded text-zinc-500 hover:text-cyan-300 transition-colors"
-                title="Nomni tahrirlash"
+                title={strings.chat.rename}
               >
                 <Edit2 className="w-3.5 h-3.5" />
               </button>
@@ -186,38 +210,85 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
           <div className="hidden sm:flex items-center gap-2">
             <span className="text-[10px] px-2.5 py-0.5 rounded-full bg-cyan-950/80 border border-cyan-500/40 text-cyan-300 font-mono flex items-center gap-1.5 shadow-[0_0_12px_rgba(0,240,255,0.25)]">
               <Sparkles className="w-3 h-3 text-cyan-400 animate-pulse" />
-              v1.3 LOCAL AGENT
+              v1.4 LOCAL AGENT
             </span>
-            <span className="text-[10px] px-2 py-0.5 rounded-full bg-cyan-950/80 border border-cyan-500/40 text-cyan-300 font-mono flex items-center gap-1">
+            <span className="text-[10px] px-2.5 py-0.5 rounded-full bg-cyan-950/80 border border-cyan-500/40 text-cyan-300 font-mono flex items-center gap-1">
               <ShieldCheck className="w-3 h-3 text-emerald-400" />
-              Local Whitelist
+              Windows Whitelist
             </span>
           </div>
         </div>
 
         {/* Right Actions */}
-        <div className="flex items-center gap-3 shrink-0">
-          <div className="hidden sm:flex items-center gap-2 px-3 py-1 rounded-full bg-cyan-950/40 border border-cyan-800/30 text-[11px] font-mono text-cyan-300">
+        <div className="flex items-center gap-2 shrink-0">
+          <div className="hidden sm:flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-cyan-950/40 border border-cyan-800/30 text-[11px] font-mono text-cyan-300">
             <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-            100% Oflayn
+            {strings.header.offline}
           </div>
 
           <button
             onClick={() => {
-              if (confirm('Joriy chat xabarlarini tozalashni xohlaysizmi?')) {
+              if (confirm(strings.header.clearConfirm)) {
                 onClearChat();
               }
             }}
             className="p-2 rounded-xl text-zinc-400 hover:text-rose-400 hover:bg-rose-950/40 border border-transparent hover:border-rose-900/30 transition-all"
-            title="Chatni tozalash"
+            title={strings.header.clearChat}
           >
             <Trash2 className="w-4 h-4" />
           </button>
         </div>
       </div>
 
+      {/* Windows 11 Apps Dock / Quick Launch Row */}
+      {showAppsBar && (
+        <div className="px-4 py-2 bg-[#090e18] border-b border-cyan-900/20 flex items-center gap-2 overflow-x-auto no-scrollbar shrink-0 select-none">
+          <span className="text-[10px] font-bold uppercase tracking-wider text-cyan-400 font-mono shrink-0 flex items-center gap-1">
+            <Sparkles className="w-3 h-3 text-cyan-400" />
+            {strings.header.appsDock}:
+          </span>
+          {appLaunchItems.map(app => (
+            <button
+              key={app.id}
+              onClick={() => {
+                if (onOpenApp) {
+                  onOpenApp(app.id);
+                } else {
+                  handleQuickCommand(app.cmd);
+                }
+              }}
+              className="px-2.5 py-1 rounded-xl bg-zinc-900/80 hover:bg-cyan-950/70 border border-cyan-900/40 hover:border-cyan-500/50 text-zinc-300 hover:text-cyan-200 transition-all flex items-center gap-1.5 text-xs shrink-0 active:scale-95 shadow-sm group"
+              title={`Windows: ${app.cmd}`}
+            >
+              {app.icon}
+              <span className="group-hover:text-cyan-300 font-medium">{app.label}</span>
+            </button>
+          ))}
+        </div>
+      )}
+
       {/* Messages Scroll Area */}
       <div className="flex-1 overflow-y-auto p-4 md:p-6 space-y-6 scrollbar-thin scrollbar-thumb-cyan-950">
+        {chat.messages.length === 0 && (
+          <div className="py-8 px-4 max-w-xl mx-auto text-center space-y-4 animate-fadeIn">
+            <div className="w-16 h-16 mx-auto rounded-3xl bg-cyan-950/60 border-2 border-cyan-500/40 flex items-center justify-center text-cyan-300 shadow-[0_0_25px_rgba(0,240,255,0.2)]">
+              <Bot className="w-8 h-8" />
+            </div>
+            <div>
+              <h3 className="text-lg font-bold text-zinc-100">{strings.chat.welcomeTitle}</h3>
+              <p className="text-xs text-zinc-400 mt-1 max-w-md mx-auto leading-relaxed">
+                {strings.chat.welcomeSubtitle}
+              </p>
+            </div>
+            <div className="p-3.5 rounded-2xl bg-[#0c121e] border border-cyan-900/40 text-xs text-zinc-300 leading-relaxed text-left">
+              <span className="font-semibold text-cyan-300 block mb-1">💡 Windows buyruqlari:</span>
+              <p className="text-zinc-400 text-[11px] leading-relaxed">
+                {strings.chat.welcomeTip}
+              </p>
+            </div>
+          </div>
+        )}
+
         {chat.messages.map(msg => {
           const isUser = msg.sender === 'user';
 
@@ -244,7 +315,7 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
                   : 'bg-[#0c121e] border border-cyan-900/40 text-zinc-200 shadow-[0_0_20px_rgba(0,240,255,0.05)] rounded-tl-none'}
               `}>
                 <div className="flex items-center justify-between gap-4 text-[11px] font-mono opacity-60 mb-1">
-                  <span>{isUser ? 'Siz' : agentName}</span>
+                  <span>{isUser ? strings.chat.you : agentName}</span>
                   <span>{msg.timeFormatted}</span>
                 </div>
 
@@ -256,7 +327,7 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
                 {msg.commandDetails?.windowsCommand && (
                   <div className="mt-2 p-2.5 rounded-xl bg-black/50 border border-cyan-950 flex items-center gap-2 text-xs font-mono text-cyan-300">
                     <Terminal className="w-3.5 h-3.5 text-cyan-400 shrink-0" />
-                    <span className="truncate">Windows buyrug‘i: {msg.commandDetails.windowsCommand}</span>
+                    <span className="truncate">{strings.chat.windowsCommandLabel} {msg.commandDetails.windowsCommand}</span>
                   </div>
                 )}
 
@@ -268,7 +339,7 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
                     rel="noopener noreferrer"
                     className="mt-2 inline-flex items-center gap-2 px-3 py-2 rounded-xl bg-cyan-500/15 border border-cyan-500/30 text-cyan-300 hover:bg-cyan-500/25 text-xs font-medium transition-all"
                   >
-                    <span>Saytni ochish: {msg.webLink.title}</span>
+                    <span>{strings.chat.openSite} {msg.webLink.title}</span>
                     <ExternalLink className="w-3.5 h-3.5" />
                   </a>
                 )}
@@ -279,7 +350,7 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
                     <div>
                       <span className="font-semibold text-emerald-300 block">{msg.createdFile.name}</span>
                       <span className="text-[11px] text-zinc-400">
-                        {msg.createdFile.location} papkasida yaratildi ({msg.createdFile.size} bayt)
+                        {msg.createdFile.location} ({msg.createdFile.size} bayt)
                       </span>
                     </div>
                     <button
@@ -293,7 +364,7 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
                       className="p-1.5 rounded-lg bg-emerald-500/20 text-emerald-300 hover:bg-emerald-500/30 flex items-center gap-1 text-[11px]"
                       title="Qayta yuklab olish"
                     >
-                      <Download className="w-3.5 h-3.5" /> Yuklash
+                      <Download className="w-3.5 h-3.5" /> {strings.chat.downloadFile}
                     </button>
                   </div>
                 )}
@@ -306,7 +377,7 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
         {isProcessing && (
           <div className="flex items-center gap-3 text-cyan-400 text-xs font-mono py-2 animate-pulse">
             <Bot className="w-4 h-4 animate-spin" />
-            <span>Lokal buyruq bajarilmoqda...</span>
+            <span>{strings.chat.processing}</span>
           </div>
         )}
 
@@ -315,8 +386,8 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
 
       {/* Quick Command Chips */}
       <div className="px-4 py-2 border-t border-cyan-900/20 bg-[#080c14]/90 flex items-center gap-2 overflow-x-auto no-scrollbar shrink-0">
-        <span className="text-[11px] font-mono text-zinc-500 shrink-0">Tezkor:</span>
-        {quickChips.map((chip, i) => (
+        <span className="text-[11px] font-mono text-zinc-500 shrink-0">{strings.chat.quick}</span>
+        {strings.quickChips.map((chip, i) => (
           <button
             key={i}
             onClick={() => handleQuickCommand(chip)}
@@ -331,22 +402,36 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
       <div className="p-4 bg-[#0a0f18] border-t border-cyan-900/30 shrink-0 relative">
         {/* Quick Menu Popup */}
         {showQuickMenu && (
-          <div className="absolute bottom-20 left-4 w-64 bg-[#0c121e] border border-cyan-500/40 rounded-2xl p-2 shadow-[0_0_30px_rgba(0,240,255,0.2)] z-20 space-y-1 text-xs">
-            <div className="px-3 py-1.5 text-[10px] font-bold text-cyan-400/70 uppercase">
-              Tezkor Lokal Amallar
+          <div className="absolute bottom-20 left-4 w-72 bg-[#0c121e] border border-cyan-500/40 rounded-2xl p-2.5 shadow-[0_0_30px_rgba(0,240,255,0.2)] z-20 space-y-1 text-xs max-h-96 overflow-y-auto">
+            <div className="px-3 py-1.5 text-[10px] font-bold text-cyan-400/80 uppercase font-mono">
+              {strings.chat.quickActionsTitle}
             </div>
-            <button
-              onClick={() => handleQuickCommand('Desktopda test.txt yarat')}
-              className="w-full text-left px-3 py-2 rounded-xl text-zinc-300 hover:text-cyan-300 hover:bg-cyan-950/60"
-            >
-              📄 Desktopda fayl yaratish
-            </button>
+            {appLaunchItems.map(app => (
+              <button
+                key={app.id}
+                onClick={() => {
+                  if (onOpenApp) {
+                    onOpenApp(app.id);
+                    setShowQuickMenu(false);
+                  } else {
+                    handleQuickCommand(app.cmd);
+                  }
+                }}
+                className="w-full text-left px-3 py-2 rounded-xl text-zinc-300 hover:text-cyan-300 hover:bg-cyan-950/60 flex items-center justify-between"
+              >
+                <span className="flex items-center gap-2">
+                  {app.icon} {app.label}
+                </span>
+                <span className="text-[10px] text-zinc-500 font-mono">App</span>
+              </button>
+            ))}
+            <div className="border-t border-zinc-800 my-1" />
             <button
               onClick={() => handleQuickCommand('Vaqt')}
               className="w-full text-left px-3 py-2 rounded-xl text-zinc-300 hover:text-cyan-300 hover:bg-cyan-950/60 flex items-center justify-between"
             >
               <span>⏰ Vaqt va sana</span>
-              <span className="text-[10px] text-zinc-500 font-mono">Tizim</span>
+              <span className="text-[10px] text-zinc-500 font-mono">Time</span>
             </button>
             <button
               onClick={() => handleQuickCommand('Tizim holati')}
@@ -356,67 +441,11 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
               <span className="text-[10px] text-zinc-500 font-mono">Status</span>
             </button>
             <button
-              onClick={() => handleQuickCommand('Batareya')}
-              className="w-full text-left px-3 py-2 rounded-xl text-zinc-300 hover:text-cyan-300 hover:bg-cyan-950/60 flex items-center justify-between"
-            >
-              <span>🔋 Batareya & Quvvat</span>
-              <span className="text-[10px] text-zinc-500 font-mono">Power</span>
-            </button>
-            <button
-              onClick={() => handleQuickCommand('Downloads och')}
-              className="w-full text-left px-3 py-2 rounded-xl text-zinc-300 hover:text-cyan-300 hover:bg-cyan-950/60 flex items-center justify-between"
-            >
-              <span>📂 Downloads papkasi</span>
-              <span className="text-[10px] text-zinc-500 font-mono">Explorer</span>
-            </button>
-            <button
-              onClick={() => handleQuickCommand('Desktop och')}
-              className="w-full text-left px-3 py-2 rounded-xl text-zinc-300 hover:text-cyan-300 hover:bg-cyan-950/60 flex items-center justify-between"
-            >
-              <span>📁 Desktop (Ish stoli)</span>
-              <span className="text-[10px] text-zinc-500 font-mono">Explorer</span>
-            </button>
-            <button
-              onClick={() => handleQuickCommand('Documents och')}
-              className="w-full text-left px-3 py-2 rounded-xl text-zinc-300 hover:text-cyan-300 hover:bg-cyan-950/60 flex items-center justify-between"
-            >
-              <span>📄 Documents (Hujjatlar)</span>
-              <span className="text-[10px] text-zinc-500 font-mono">Explorer</span>
-            </button>
-            <button
               onClick={() => handleQuickCommand('Temporary files clean')}
               className="w-full text-left px-3 py-2 rounded-xl text-zinc-300 hover:text-cyan-300 hover:bg-cyan-950/60 flex items-center justify-between"
             >
               <span>🧹 Kesh tozalash (%temp%)</span>
-              <span className="text-[10px] text-cyan-400 font-mono">Optimizatsiya</span>
-            </button>
-            <button
-              onClick={() => handleQuickCommand('Ovoz 50')}
-              className="w-full text-left px-3 py-2 rounded-xl text-zinc-300 hover:text-cyan-300 hover:bg-cyan-950/60 flex items-center justify-between"
-            >
-              <span>🔊 Ovozni 50% qilish</span>
-              <span className="text-[10px] text-zinc-500 font-mono">Volume</span>
-            </button>
-            <button
-              onClick={() => handleQuickCommand('Mute')}
-              className="w-full text-left px-3 py-2 rounded-xl text-zinc-300 hover:text-cyan-300 hover:bg-cyan-950/60 flex items-center justify-between"
-            >
-              <span>🔇 Ovozni o‘chirish (Mute)</span>
-              <span className="text-[10px] text-zinc-500 font-mono">Audio</span>
-            </button>
-            <button
-              onClick={() => handleQuickCommand('YouTube och')}
-              className="w-full text-left px-3 py-2 rounded-xl text-zinc-300 hover:text-cyan-300 hover:bg-cyan-950/60 flex items-center justify-between"
-            >
-              <span>🎬 YouTube ochish</span>
-              <span className="text-[10px] text-rose-400 font-mono">Web</span>
-            </button>
-            <button
-              onClick={() => handleQuickCommand('Telegram och')}
-              className="w-full text-left px-3 py-2 rounded-xl text-zinc-300 hover:text-cyan-300 hover:bg-cyan-950/60 flex items-center justify-between"
-            >
-              <span>✈️ Telegram Web</span>
-              <span className="text-[10px] text-blue-400 font-mono">Web</span>
+              <span className="text-[10px] text-cyan-400 font-mono">Clean</span>
             </button>
             <button
               onClick={() => handleQuickCommand('Lock PC')}
@@ -425,43 +454,8 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
               <span>🔒 Kompyuterni bloklash</span>
               <span className="text-[10px] text-amber-400 font-mono">Lock</span>
             </button>
-            <button
-              onClick={() => handleQuickCommand('Clipboard')}
-              className="w-full text-left px-3 py-2 rounded-xl text-zinc-300 hover:text-cyan-300 hover:bg-cyan-950/60 flex items-center justify-between"
-            >
-              <span>📋 Clipboard (Bufer)</span>
-              <span className="text-[10px] text-zinc-500 font-mono">Memory</span>
-            </button>
           </div>
         )}
-
-        {/* Quick Action Chips Row */}
-        <div className="flex items-center gap-1.5 overflow-x-auto pb-2 scrollbar-none max-w-4xl mx-auto">
-          {[
-            { label: '⏰ Vaqt', cmd: 'Vaqt' },
-            { label: '📊 Tizim', cmd: 'Tizim holati' },
-            { label: '🔋 Batareya', cmd: 'Batareya' },
-            { label: '📂 Downloads', cmd: 'Downloads och' },
-            { label: '📁 Desktop', cmd: 'Desktop och' },
-            { label: '📄 Documents', cmd: 'Documents och' },
-            { label: '🧹 Kesh tozalash', cmd: 'Temporary files clean' },
-            { label: '🔊 Ovoz 50%', cmd: 'Ovoz 50' },
-            { label: '🔇 Mute', cmd: 'Mute' },
-            { label: '🎬 YouTube', cmd: 'YouTube och' },
-            { label: '✈️ Telegram', cmd: 'Telegram och' },
-            { label: '🔒 Lock PC', cmd: 'Lock PC' },
-            { label: '📋 Clipboard', cmd: 'Clipboard' },
-          ].map(chip => (
-            <button
-              key={chip.cmd}
-              type="button"
-              onClick={() => handleQuickCommand(chip.cmd)}
-              className="px-2.5 py-1 rounded-lg bg-[#0c1322] border border-cyan-900/40 hover:border-cyan-500/50 hover:bg-cyan-950/50 text-zinc-300 hover:text-cyan-300 transition-all whitespace-nowrap shrink-0 text-[11px] font-mono shadow-sm active:scale-95"
-            >
-              {chip.label}
-            </button>
-          ))}
-        </div>
 
         <form onSubmit={handleSend} className="flex items-center gap-2 max-w-4xl mx-auto">
           {/* Plus / Quick Actions Button */}
@@ -474,7 +468,7 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
                 ? 'bg-cyan-500/30 border-cyan-400 text-cyan-300' 
                 : 'bg-zinc-900/80 border-cyan-900/40 text-zinc-400 hover:text-cyan-400 hover:border-cyan-700/50'}
             `}
-            title="Tezkor amallar"
+            title={strings.chat.quickActionsTitle}
           >
             <Plus className="w-5 h-5" />
           </button>
@@ -485,7 +479,7 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
               type="text"
               value={input}
               onChange={e => setInput(e.target.value)}
-              placeholder='Command yozing... (masalan: "Chrome och", "Desktopda test.txt yarat")'
+              placeholder={strings.chat.placeholder}
               className="w-full pl-4 pr-12 py-3 rounded-2xl bg-[#070b12] border border-cyan-900/40 text-sm text-zinc-100 placeholder-zinc-500 focus:outline-none focus:border-cyan-500/70 shadow-inner transition-all"
               disabled={isProcessing}
             />
@@ -500,7 +494,7 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
                   ? 'bg-rose-500/30 text-rose-400 animate-pulse border border-rose-500/50' 
                   : 'text-zinc-400 hover:text-cyan-300'}
               `}
-              title={isListening ? "Ovozli tinglashni to'xtatish" : "Ovozli buyruq berish"}
+              title={isListening ? strings.chat.voiceActive : strings.chat.voiceInactive}
             >
               {isListening ? <MicOff className="w-4 h-4" /> : <Mic className="w-4 h-4" />}
             </button>

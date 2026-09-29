@@ -81,9 +81,24 @@ export interface Project {
   createdAt: number;
 }
 
+export type SupportedLanguage = 'uz' | 'en' | 'ru';
+
+export type WindowsAppId = 
+  | 'calculator'
+  | 'clock'
+  | 'cmd'
+  | 'notepad'
+  | 'paint'
+  | 'explorer'
+  | 'taskmgr'
+  | 'settings'
+  | 'browser'
+  | 'control'
+  | 'calendar';
+
 export interface AppSettings {
   agentName: string;
-  language: 'uz_lat' | 'uz_kir' | 'en';
+  language: 'uz' | 'en' | 'ru' | 'uz_lat' | 'uz_kir';
   theme: 'dark' | 'light';
   animations: boolean;
   soundEnabled: boolean;
@@ -171,6 +186,7 @@ export interface CommandExecutionResult {
     iconType: string;
   };
   speechText?: string;
+  openedApp?: WindowsAppId;
   requiresConfirmation?: boolean;
   confirmationMessage?: string;
   permissionType?: PermissionType;

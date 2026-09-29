@@ -15,29 +15,27 @@ export function normalizeInput(text: string): string {
 
 export function extractLocation(rawText: string): ApprovedLocation {
   const norm = normalizeInput(rawText);
-  if (/(yuklama|downloads|download|zagruzki)/i.test(norm)) return 'Downloads';
-  if (/(hujjat|documents|document|dokument)/i.test(norm)) return 'Documents';
-  if (/(rasm|pictures|picture|foto)/i.test(norm)) return 'Pictures';
-  if (/(video|videos|rolik)/i.test(norm)) return 'Videos';
-  if (/(desktop|ish stoli|rabochiy)/i.test(norm)) return 'Desktop';
+  if (/(yuklama|downloads|download|zagruzki|загрузк)/i.test(norm)) return 'Downloads';
+  if (/(hujjat|documents|document|dokument|документ)/i.test(norm)) return 'Documents';
+  if (/(rasm|pictures|picture|foto|фото|изображен)/i.test(norm)) return 'Pictures';
+  if (/(video|videos|rolik|видео)/i.test(norm)) return 'Videos';
+  if (/(desktop|ish stoli|rabochiy|рабоч)/i.test(norm)) return 'Desktop';
   return 'Desktop';
 }
 
 export function parseLocalCommand(rawInput: string): ParseResult {
   const input = normalizeInput(rawInput);
   if (!input) {
-    return { recognized: false, unrecognizedReason: 'Buyruq kiritilmadi' };
+    return { recognized: false, unrecognizedReason: 'Buyruq kiritilmadi / No command entered' };
   }
 
-  // 1. Check direct keyword match against ALL_COMMANDS_META
+  // 1. Direct keyword match against registered ALL_COMMANDS_META
   for (const cmd of ALL_COMMANDS_META) {
     for (const kw of cmd.keywords) {
       const kwNorm = normalizeInput(kw);
       if (input === kwNorm || input.startsWith(kwNorm + ' ') || input.endsWith(' ' + kwNorm)) {
-        // Matched command
         const args: Record<string, any> = { raw: input };
 
-        // If file or folder command, extract location and name
         if (cmd.category === 'files' || cmd.id === 'win_open_folder') {
           args.location = extractLocation(input);
         }
@@ -56,12 +54,163 @@ export function parseLocalCommand(rawInput: string): ParseResult {
     }
   }
 
-  // 2. Specific Rule-based Parsers for v1.3 commands:
+  // 2. Multi-language Application Launch Pattern:
+  // "open <app>", "launch <app>", "start <app>", "run <app>"
+  // "<app> och", "<app>ni och", "och <app>", "<app> ishga tushir"
+  // "открыть <app>", "запустить <app>", "включить <app>"
+  const isAppOpenIntent = /^(?:open|launch|start|run|och|ishga\s*tushir|открыть|запустить|включить)\s+(.+)$/i.test(input) ||
+                          /(?:och|ni\s*och|ishga\s*tushir)$/i.test(input);
 
-  // A. Open Folders: "downloads och", "desktop och", "documents och", "hujjatlar och", etc.
+  if (isAppOpenIntent) {
+    // A. Calculator
+    if (/(?:calc|calculator|kalkulyator|калькулятор)/i.test(input)) {
+      return {
+        recognized: true,
+        commandId: 'app_calculator',
+        category: 'applications',
+        pluginId: 'system_plugin',
+        title: 'Calculator (Kalkulyator)',
+        permissionType: 'application_launch',
+        args: {},
+      };
+    }
+
+    // B. Clock / Alarms / Timer
+    if (/(?:clock|soat|budilnik|часы|будильник|таймер|alarms|timer)/i.test(input)) {
+      return {
+        recognized: true,
+        commandId: 'app_clock',
+        category: 'applications',
+        pluginId: 'system_plugin',
+        title: 'Clock (Soat va Taymer)',
+        permissionType: 'application_launch',
+        args: {},
+      };
+    }
+
+    // C. CMD / Terminal / Powershell
+    if (/(?:cmd|terminal|command prompt|powershell|командн|терминал)/i.test(input)) {
+      return {
+        recognized: true,
+        commandId: 'app_cmd',
+        category: 'applications',
+        pluginId: 'windows_plugin',
+        title: 'CMD (Command Prompt)',
+        permissionType: 'application_launch',
+        args: {},
+      };
+    }
+
+    // D. Notepad
+    if (/(?:notepad|bloknot|блокнот|daftar|matn muharriri)/i.test(input)) {
+      return {
+        recognized: true,
+        commandId: 'app_notepad',
+        category: 'applications',
+        pluginId: 'file_plugin',
+        title: 'Notepad (Bloknot)',
+        permissionType: 'application_launch',
+        args: {},
+      };
+    }
+
+    // E. Paint
+    if (/(?:paint|mspaint|паинт|рисовани)/i.test(input)) {
+      return {
+        recognized: true,
+        commandId: 'app_paint',
+        category: 'applications',
+        pluginId: 'system_plugin',
+        title: 'MS Paint',
+        permissionType: 'application_launch',
+        args: {},
+      };
+    }
+
+    // F. File Explorer
+    if (/(?:file explorer|explorer|fayl menejeri|проводник)/i.test(input) && !/(?:downloads|desktop|documents|pictures|videos)/i.test(input)) {
+      return {
+        recognized: true,
+        commandId: 'app_explorer',
+        category: 'applications',
+        pluginId: 'windows_plugin',
+        title: 'File Explorer (Fayl Menejeri)',
+        permissionType: 'application_launch',
+        args: {},
+      };
+    }
+
+    // G. Task Manager
+    if (/(?:task manager|taskmgr|диспетчер задач|vazifalar menejeri|dispetcher)/i.test(input)) {
+      return {
+        recognized: true,
+        commandId: 'app_taskmgr',
+        category: 'applications',
+        pluginId: 'windows_plugin',
+        title: 'Task Manager (Vazifalar Menejeri)',
+        permissionType: 'application_launch',
+        args: {},
+      };
+    }
+
+    // H. Settings
+    if (/(?:settings|sozlamalar|настройки|параметры|windows settings)/i.test(input)) {
+      return {
+        recognized: true,
+        commandId: 'app_settings',
+        category: 'applications',
+        pluginId: 'windows_plugin',
+        title: 'Windows Settings',
+        permissionType: 'application_launch',
+        args: {},
+      };
+    }
+
+    // I. Browser / Chrome
+    if (/(?:browser|brauzer|chrome|google chrome|браузер|хром)/i.test(input)) {
+      return {
+        recognized: true,
+        commandId: 'app_browser',
+        category: 'applications',
+        pluginId: 'browser_plugin',
+        title: 'Browser',
+        permissionType: 'application_launch',
+        args: {},
+      };
+    }
+
+    // J. Control Panel
+    if (/(?:control panel|boshqaruv paneli|панель управления|control)/i.test(input)) {
+      return {
+        recognized: true,
+        commandId: 'app_control',
+        category: 'applications',
+        pluginId: 'windows_plugin',
+        title: 'Control Panel',
+        permissionType: 'application_launch',
+        args: {},
+      };
+    }
+
+    // K. Calendar
+    if (/(?:calendar|kalendar|календарь|taqvim)/i.test(input)) {
+      return {
+        recognized: true,
+        commandId: 'app_calendar',
+        category: 'applications',
+        pluginId: 'system_plugin',
+        title: 'Calendar (Kalendar)',
+        permissionType: 'application_launch',
+        args: {},
+      };
+    }
+  }
+
+  // 3. Multi-language Open Folders:
+  // "open downloads", "downloads och", "открыть загрузки", etc.
   if (
-    /(?:downloads|desktop|documents|pictures|videos|ish stoli|hujjatlar|yuklamalar|rasmlar|videolar)\s*(?:ni\s*|papkasini\s*)?(?:och|ishga tushir|ko'rsat|korsat)?$/i.test(input) ||
-    /^(?:och|open)\s+(?:downloads|desktop|documents|pictures|videos|ish stoli|hujjatlar|yuklamalar|rasmlar|videolar)/i.test(input)
+    /(?:downloads|desktop|documents|pictures|videos|ish stoli|hujjatlar|yuklamalar|rasmlar|videolar|загрузк|рабоч|документ|фото|видео)\s*(?:ni\s*|papkasini\s*|папку\s*)?(?:och|ishga tushir|ko'rsat|korsat)?$/i.test(input) ||
+    /^(?:och|open|открыть)\s+(?:downloads|desktop|documents|pictures|videos|ish stoli|hujjatlar|yuklamalar|rasmlar|videolar|папку|загрузки|документы|рабочий стол|фото|видео)/i.test(input)
   ) {
     const loc = extractLocation(input);
     return {
@@ -69,41 +218,42 @@ export function parseLocalCommand(rawInput: string): ParseResult {
       commandId: 'win_open_folder',
       category: 'windows',
       pluginId: 'windows_plugin',
-      title: `${loc} papkasini ochish`,
+      title: `${loc} Folder`,
       permissionType: 'file_access',
       args: { location: loc },
     };
   }
 
-  // B. Temporary files cleanup: "temporary files clean", "clean temp", "kesh tozalash", "temp tozalash"
-  if (/(?:temporary files clean|clean temp|temp tozalash|kesh tozalash|keshni tozalash|vaqtinchalik fayl|temp fayl)/i.test(input)) {
+  // 4. Temporary files cleanup:
+  // "temporary files clean", "clean temp", "kesh tozalash", "очистить кэш", "очистить временные файлы"
+  if (/(?:temporary files clean|clean temp|temp tozalash|kesh tozalash|keshni tozalash|vaqtinchalik fayl|temp fayl|очистить кэш|очистить временные файлы|очистка кэша)/i.test(input)) {
     return {
       recognized: true,
       commandId: 'sys_optimize',
       category: 'automation',
       pluginId: 'automation_plugin',
-      title: 'Kesh tozalash va Optimizatsiya',
+      title: 'Temporary Files Cleanup (Kesh tozalash)',
       permissionType: 'automation',
       args: { raw: input },
     };
   }
 
-  // C. Audio Mute / Unmute
-  if (/^(?:mute|unmute|ovozni\s*(?:o['']?chir|ochir|yoq)|tovushni\s*(?:o['']?chir|ochir|yoq))$/i.test(input)) {
-    const isMute = !/unmute|yoq/i.test(input);
+  // 5. Audio Mute / Unmute:
+  if (/^(?:mute|unmute|без звука|включить звук|выключить звук|ovozni\s*(?:o['']?chir|ochir|yoq)|tovushni\s*(?:o['']?chir|ochir|yoq))$/i.test(input)) {
+    const isMute = !/(?:unmute|yoq|включить)/i.test(input);
     return {
       recognized: true,
       commandId: 'win_mute',
       category: 'windows',
       pluginId: 'system_plugin',
-      title: isMute ? 'Ovozni o‘chirish (Mute)' : 'Ovozni yoqish (Unmute)',
+      title: isMute ? 'Mute Audio' : 'Unmute Audio',
       permissionType: 'system_settings',
       args: { isMute },
     };
   }
 
-  // D. Volume change: "ovoz 50", "volume 70", "ovozni 80 ga qo'y", "volume up", "volume down"
-  const volMatch = input.match(/(?:ovoz|volume)\s*(?:darajasi)?\s*(\d{1,3})/i);
+  // 6. Volume change:
+  const volMatch = input.match(/(?:ovoz|volume|громкость)\s*(?:darajasi)?\s*(\d{1,3})/i);
   if (volMatch) {
     const level = Math.min(100, Math.max(0, parseInt(volMatch[1], 10)));
     return {
@@ -111,68 +261,68 @@ export function parseLocalCommand(rawInput: string): ParseResult {
       commandId: 'win_volume',
       category: 'windows',
       pluginId: 'system_plugin',
-      title: `Ovoz balandligini sozlash (${level}%)`,
+      title: `Set Volume (${level}%)`,
       permissionType: 'system_settings',
       args: { level },
     };
   }
-  if (/(?:volume\s*up|ovozni\s*balandlat|ovozni\s*oshir)/i.test(input)) {
+  if (/(?:volume\s*up|ovozni\s*balandlat|ovozni\s*oshir|прибавить громкость)/i.test(input)) {
     return {
       recognized: true,
       commandId: 'win_volume',
       category: 'windows',
       pluginId: 'system_plugin',
-      title: 'Ovoz balandligini oshirish',
+      title: 'Volume Up',
       permissionType: 'system_settings',
       args: { level: 80 },
     };
   }
-  if (/(?:volume\s*down|ovozni\s*pasaytir)/i.test(input)) {
+  if (/(?:volume\s*down|ovozni\s*pasaytir|убавить громкость)/i.test(input)) {
     return {
       recognized: true,
       commandId: 'win_volume',
       category: 'windows',
       pluginId: 'system_plugin',
-      title: 'Ovoz balandligini pasaytirish',
+      title: 'Volume Down',
       permissionType: 'system_settings',
       args: { level: 30 },
     };
   }
 
-  // E. PC Lock: "lock pc", "pc lock", "kompyuterni qulflash", "ekranni qulfla"
-  if (/(?:lock pc|pc lock|kompyuterni\s*(?:qulfla|blokla|qulflash)|ekranni\s*(?:qulfla|blokla))/i.test(input)) {
+  // 7. PC Lock:
+  if (/(?:lock pc|pc lock|lock computer|kompyuterni\s*(?:qulfla|blokla|qulflash)|ekranni\s*(?:qulfla|blokla)|заблокировать пк|заблокировать компьютер)/i.test(input)) {
     return {
       recognized: true,
       commandId: 'win_lock',
       category: 'windows',
       pluginId: 'windows_plugin',
-      title: 'Kompyuterni bloklash (Lock PC)',
+      title: 'Lock PC (Kompyuterni bloklash)',
       permissionType: 'windows_commands',
       args: {},
     };
   }
 
-  // F. PC Shutdown & Restart
-  if (/(?:shutdown|kompyuterni\s*(?:o['']?chir|ochir|yop)|tizimni\s*(?:o['']?chir|ochir))/i.test(input)) {
+  // 8. PC Shutdown & Restart:
+  if (/(?:shutdown|turn off pc|kompyuterni\s*(?:o['']?chir|ochir|yop)|tizimni\s*(?:o['']?chir|ochir)|выключить пк|выключить компьютер)/i.test(input)) {
     return {
       recognized: true,
       commandId: 'win_shutdown',
       category: 'windows',
       pluginId: 'windows_plugin',
-      title: 'Kompyuterni o‘chirish (Shutdown)',
+      title: 'Shutdown PC (Kompyuterni o‘chirish)',
       permissionType: 'windows_commands',
       requiresConfirmation: true,
-      confirmationMessage: '⚠️ Kompyuterni o‘chirishga ruxsat berasizmi? Ochiq dasturlar va saqlanmagan ma\'lumotlar yopilishi mumkin.',
+      confirmationMessage: '⚠️ Kompyuterni o‘chirishga ruxsat berasizmi? / Confirm system shutdown?',
       args: {},
     };
   }
-  if (/(?:restart|qayta\s*ishga\s*tushir|reboot|qayta\s*yukla)/i.test(input)) {
+  if (/(?:restart|qayta\s*ishga\s*tushir|reboot|qayta\s*yukla|перезагрузка|перезагрузить пк)/i.test(input)) {
     return {
       recognized: true,
       commandId: 'win_restart',
       category: 'windows',
       pluginId: 'windows_plugin',
-      title: 'Kompyuterni qayta ishga tushirish (Restart)',
+      title: 'Restart PC (Qayta yuklash)',
       permissionType: 'windows_commands',
       requiresConfirmation: true,
       confirmationMessage: '⚠️ Operatsion tizimni qayta ishga tushirishga (Restart) ruxsat berasizmi?',
@@ -180,61 +330,61 @@ export function parseLocalCommand(rawInput: string): ParseResult {
     };
   }
 
-  // G. Battery Status: "batareya", "battery", "quvvat", "zaryad"
-  if (/(?:batareya|battery|quvvat|zaryad|zaryadka|akkumulyator)/i.test(input)) {
+  // 9. Battery Status:
+  if (/(?:batareya|battery|quvvat|zaryad|zaryadka|akkumulyator|батарея|заряд)/i.test(input)) {
     return {
       recognized: true,
       commandId: 'sys_battery',
       category: 'system',
       pluginId: 'system_plugin',
-      title: 'Batareya holati',
+      title: 'Battery Status (Batareya)',
       permissionType: 'system_settings',
       args: {},
     };
   }
 
-  // H. Clipboard Control: "clipboard", "bufer", "clipboardni tozalash"
-  if (/(?:clipboard|bufer)/i.test(input)) {
-    const isClear = /(?:tozala|ochir|o['']?chir|bo['']?shat)/i.test(input);
+  // 10. Clipboard Control:
+  if (/(?:clipboard|bufer|буфер)/i.test(input)) {
+    const isClear = /(?:tozala|ochir|o['']?chir|bo['']?shat|очистить)/i.test(input);
     return {
       recognized: true,
       commandId: 'sys_clipboard',
       category: 'system',
       pluginId: 'system_plugin',
-      title: isClear ? 'Clipboardni tozalash' : 'Clipboard matnini ko‘rish',
+      title: isClear ? 'Clear Clipboard' : 'View Clipboard',
       permissionType: 'system_settings',
       args: { action: isClear ? 'clear' : 'read', raw: input },
     };
   }
 
-  // I. Time & Date: "vaqt", "soat", "sana"
-  if (/(?:vaqt|soat|sana|bugun qanday kun|bugungi sana|time|date)/i.test(input)) {
+  // 11. Time & Date:
+  if (/(?:vaqt|soat|sana|bugun qanday kun|bugungi sana|time|date|время|дата|сколько время|который час)/i.test(input)) {
     return {
       recognized: true,
       commandId: 'sys_time',
       category: 'system',
       pluginId: 'system_plugin',
-      title: 'Vaqt va Sana',
+      title: 'Time & Date (Vaqt va Sana)',
       permissionType: 'system_settings',
       args: {},
     };
   }
 
-  // J. System Status / Diagnostics: "status", "tizim holati", "cpu", "ram"
-  if (/(?:status|tizim holati|monitoring|diagnostika|cpu|ram|xotira|system status)/i.test(input)) {
+  // 12. System Status / Diagnostics:
+  if (/(?:status|tizim holati|monitoring|diagnostika|cpu|ram|xotira|system status|статус|состояние системы|диагностика)/i.test(input)) {
     return {
       recognized: true,
       commandId: 'sys_status',
       category: 'system',
       pluginId: 'system_plugin',
-      title: 'Tizim holati (Diagnostics)',
+      title: 'System Diagnostics & Status',
       permissionType: 'system_settings',
       args: {},
     };
   }
 
-  // K. Browser & Web Shortcuts: YouTube, Telegram, Google, Instagram
-  if (/(?:youtube|musiqa qo['']?y|video och)/i.test(input)) {
+  // 13. Browser & Web Shortcuts: YouTube, Telegram, Instagram
+  if (/(?:youtube|ютуб|musiqa qo['']?y|video och)/i.test(input)) {
     return {
       recognized: true,
       commandId: 'browser_youtube',
@@ -245,7 +395,7 @@ export function parseLocalCommand(rawInput: string): ParseResult {
       args: {},
     };
   }
-  if (/(?:telegram|tg)\s*(?:och|ga kir|web)?/i.test(input)) {
+  if (/(?:telegram|tg|телеграм)\s*(?:och|ga kir|web|открыть)?/i.test(input)) {
     return {
       recognized: true,
       commandId: 'browser_telegram',
@@ -256,7 +406,7 @@ export function parseLocalCommand(rawInput: string): ParseResult {
       args: {},
     };
   }
-  if (/(?:instagram|insta)\s*(?:och|ga kir|web)?/i.test(input)) {
+  if (/(?:instagram|insta|инстаграм)\s*(?:och|ga kir|web|открыть)?/i.test(input)) {
     return {
       recognized: true,
       commandId: 'browser_instagram',
@@ -268,23 +418,17 @@ export function parseLocalCommand(rawInput: string): ParseResult {
     };
   }
 
-  // L. File Creation: "Desktopda test.txt yarat ichiga salom deb yoz", "test.txt yarat"
-  if (/(?:yarat|yoz|hosil qil)/i.test(input) && /(?:fayl|\.txt|\.bat|\.json|\.md|hujjat)/i.test(input)) {
+  // 14. File Creation:
+  if (/(?:yarat|yoz|hosil qil|create|make|создать|записать)/i.test(input) && /(?:fayl|\.txt|\.bat|\.json|\.md|hujjat|file|файл)/i.test(input)) {
     const loc = extractLocation(input);
-    
-    let fileName = 'yangi_hujjat.txt';
+    let fileName = 'new_document.txt';
     const nameMatch = input.match(/([a-zA-Z0-9_\-.]+\.[a-zA-Z0-9]+)/i);
     if (nameMatch) {
       fileName = nameMatch[1];
-    } else {
-      const altMatch = input.match(/(?:nomli|nomi)\s+([a-zA-Z0-9_\-]+)/i);
-      if (altMatch) {
-        fileName = `${altMatch[1]}.txt`;
-      }
     }
 
-    let content = 'JARVIS tomonidan yaratilgan matnli hujjat.';
-    const contentMatch = input.match(/(?:ichiga|matni)\s+["']?([^"']+)["']?\s*(?:deb\s+yoz|yoz)?/i);
+    let content = 'Created by JARVIS Local Desktop Agent.';
+    const contentMatch = input.match(/(?:ichiga|matni|content|текст)\s+["']?([^"']+)["']?\s*(?:deb\s+yoz|yoz)?/i);
     if (contentMatch) {
       content = contentMatch[1].trim();
     }
@@ -294,7 +438,7 @@ export function parseLocalCommand(rawInput: string): ParseResult {
       commandId: 'file_create',
       category: 'files',
       pluginId: 'file_plugin',
-      title: 'Fayl yaratish',
+      title: 'Create File (Fayl yaratish)',
       permissionType: 'file_access',
       args: {
         name: fileName,
@@ -304,124 +448,40 @@ export function parseLocalCommand(rawInput: string): ParseResult {
     };
   }
 
-  // M. Folder Creation: "Desktopda yangi papka yarat", "loyiha papkasini yarat"
-  if (/(?:papka|folder)\s*(?:yarat|och)/i.test(input) && !/(?:ochish|ko'rsat|royxat)/i.test(input)) {
-    const loc = extractLocation(input);
-    let folderName = 'Yangi_Papka';
-    const folderMatch = input.match(/([a-zA-Z0-9_\-]+)\s*(?:papka|folder)/i);
-    if (folderMatch && !['yangi', 'desktopda', 'downloadsda'].includes(folderMatch[1])) {
-      folderName = folderMatch[1];
-    }
-
-    return {
-      recognized: true,
-      commandId: 'file_create_folder',
-      category: 'files',
-      pluginId: 'file_plugin',
-      title: 'Papka yaratish',
-      permissionType: 'file_access',
-      args: {
-        name: folderName,
-        location: loc,
-      },
-    };
-  }
-
-  // N. File Delete: "test.txt ni o'chir", "faylni ochir"
-  if (/(?:ochir|o['']?chir|delete|yoqot)/i.test(input) && /(?:fayl|\.txt|\.bat|\.json|\.md|hujjat)/i.test(input)) {
-    const loc = extractLocation(input);
-    let fileName = '';
-    const nameMatch = input.match(/([a-zA-Z0-9_\-.]+\.[a-zA-Z0-9]+)/i);
-    if (nameMatch) {
-      fileName = nameMatch[1];
-    }
-
-    return {
-      recognized: true,
-      commandId: 'file_delete',
-      category: 'files',
-      pluginId: 'file_plugin',
-      title: 'Faylni o‘chirish',
-      requiresConfirmation: true,
-      confirmationMessage: `⚠️ "${fileName || 'tanlangan fayl'}" faylini o‘chirishga ruxsat berasizmi? Bu amalni orqaga qaytarib bo‘lmaydi.`,
-      permissionType: 'file_delete',
-      args: {
-        name: fileName,
-        location: loc,
-      },
-    };
-  }
-
-  // O. File Open: "test.txt ni och", "test.txt faylini och"
-  if (/(?:och|o['']?qi|kor|ko'r)/i.test(input) && /(?:fayl|\.txt|\.bat|\.json|\.md|hujjat)/i.test(input)) {
-    const loc = extractLocation(input);
-    let fileName = '';
-    const nameMatch = input.match(/([a-zA-Z0-9_\-.]+\.[a-zA-Z0-9]+)/i);
-    if (nameMatch) {
-      fileName = nameMatch[1];
-    }
-
-    return {
-      recognized: true,
-      commandId: 'file_open',
-      category: 'files',
-      pluginId: 'file_plugin',
-      title: 'Faylni ochish',
-      permissionType: 'file_access',
-      args: {
-        name: fileName,
-        location: loc,
-      },
-    };
-  }
-
-  // P. Google Search: "google da qidir: ...", "internetdan qidir: ..."
-  if (/(?:google\s*da\s*qidir|qidiruv|qidir)\s*:?\s*(.*)/i.test(input)) {
-    const qMatch = input.match(/(?:google\s*da\s*qidir|qidiruv|qidir)\s*:?\s*(.*)/i);
-    const query = qMatch ? qMatch[1].trim() : '';
-    return {
-      recognized: true,
-      commandId: 'browser_google',
-      category: 'browser',
-      pluginId: 'browser_plugin',
-      title: 'Google Qidiruv',
-      permissionType: 'browser_control',
-      args: { query },
-    };
-  }
-
-  // Q. Conversational / greetings rule-based detection
-  if (/(?:salom|assalomu alaykum|qalaysan|ishlar qalay|kimsan|jarvis)/i.test(input)) {
+  // 15. Conversational / greetings rule-based:
+  if (/(?:salom|assalomu alaykum|qalaysan|ishlar qalay|kimsan|jarvis|hello|hi|hey|привет|здравствуйте)/i.test(input)) {
     return {
       recognized: true,
       commandId: 'sys_greeting',
       category: 'system',
       pluginId: 'system_plugin',
-      title: 'Lokal salomlashish',
+      title: 'JARVIS Local Greeting',
       permissionType: 'system_settings',
       args: { text: input },
     };
   }
 
-  // If no rule matched, return unrecognized with suggestions
+  // Fallback: Unrecognized
   return {
     recognized: false,
-    unrecognizedReason: 'Bu command JARVIS tomonidan qo‘llab-quvvatlanmaydi.',
+    unrecognizedReason: 'Buyruq tanilmadi / Command not recognized / Команда не распознана',
     suggestedCommands: [
-      'Vaqt va sana',
-      'Tizim holati',
-      'Batareya holati',
-      'Downloads och',
-      'Desktop och',
-      'Documents och',
-      'Kesh tozalash',
-      'Ovoz 50%',
-      'Mute',
-      'YouTube och',
-      'Google och',
-      'Telegram och',
+      'open calculator',
+      'open cmd',
+      'open clock',
+      'open notepad',
+      'open paint',
+      'open file explorer',
+      'open task manager',
+      'open settings',
+      'open browser',
+      'open control panel',
+      'open calendar',
+      'Tizim holati / System status',
+      'Vaqt / Time',
+      'Batareya / Battery',
+      'Kesh tozalash / Clean temp',
       'Lock PC',
-      'Clipboard',
     ],
   };
 }

@@ -1,6 +1,26 @@
 <!doctype html>
 <html lang="uz">
   <head>
+    <script>
+      (function() {
+        var origError = console.error;
+        var origWarn = console.warn;
+        console.error = function() {
+          var msg = arguments[0];
+          if (typeof msg === 'string' && (msg.indexOf('[vite]') !== -1 || msg.indexOf('vite-plugin-pwa') !== -1 || msg.indexOf('WebSocket') !== -1)) {
+            return;
+          }
+          origError.apply(console, arguments);
+        };
+        console.warn = function() {
+          var msg = arguments[0];
+          if (typeof msg === 'string' && (msg.indexOf('[vite]') !== -1 || msg.indexOf('vite-plugin-pwa') !== -1 || msg.indexOf('WebSocket') !== -1)) {
+            return;
+          }
+          origWarn.apply(console, arguments);
+        };
+      })();
+    </script>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
     <meta name="theme-color" content="#020617" />

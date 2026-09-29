@@ -9,6 +9,7 @@ import { Projects } from './components/Projects';
 import { Updates } from './components/Updates';
 import { ProfileModal } from './components/ProfileModal';
 import { PermissionModal } from './components/PermissionModal';
+import { WindowsAppModal } from './components/WindowsAppModal';
 import { 
   SidebarTab, 
   ChatSession, 
@@ -16,20 +17,26 @@ import {
   AppSettings, 
   LocalPlugin, 
   Project, 
-  PendingPermission 
+  PendingPermission,
+  WindowsAppId,
+  SupportedLanguage
 } from './types';
 import { StorageService } from './services/storageService';
 import { ChatService } from './services/chatService';
 import { PluginService } from './services/pluginService';
 import { ProjectService } from './services/projectService';
 import { CommandService } from './services/commandService';
-import { Menu } from 'lucide-react';
+import { normalizeLang, t } from './utils/i18n';
+import { Menu, Globe, LayoutGrid, ShieldCheck } from 'lucide-react';
 
 export default function App() {
   // Navigation
   const [currentTab, setCurrentTab] = useState<SidebarTab>('chat');
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
+
+  // Active Windows Application Modal (11 applications)
+  const [activeAppWindow, setActiveAppWindow] = useState<WindowsAppId | null>(null);
 
   // Core Data State
   const [settings, setSettings] = useState<AppSettings>(() => StorageService.getSettings());
@@ -42,8 +49,23 @@ export default function App() {
   const [isProcessing, setIsProcessing] = useState(false);
   const [pendingPermission, setPendingPermission] = useState<PendingPermission | null>(null);
 
+  const activeLanguage: SupportedLanguage = normalizeLang(settings.language);
+  const strings = t(activeLanguage);
+
   // Sync active chat object
   const activeChat = chats.find(c => c.id === activeChatId) || chats[0] || ChatService.createNewChat();
+
+  // Keep HTML document metadata in sync with language
+  useEffect(() => {
+    document.documentElement.lang = activeLanguage;
+    if (activeLanguage === 'en') {
+      document.title = 'JARVIS Windows Assistant v1.4';
+    } else if (activeLanguage === 'ru') {
+      document.title = 'JARVIS Windows Ассистент v1.4';
+    } else {
+      document.title = 'JARVIS Windows Yordamchisi v1.4';
+    }
+  }, [activeLanguage]);
 
   // Load / Refresh lists from services
   const refreshState = useCallback(() => {
@@ -93,6 +115,13 @@ export default function App() {
     refreshState();
   };
 
+  // Quick Language Switcher
+  const handleSetLanguage = (lang: SupportedLanguage) => {
+    const updated = { ...settings, language: lang };
+    StorageService.saveSettings(updated);
+    setSettings(updated);
+  };
+
   // Handle Command Execution
   const executeCommandProcess = async (text: string, forceConfirmed: boolean = false) => {
     const now = new Date();
@@ -114,17 +143,22 @@ export default function App() {
     setIsProcessing(true);
 
     try {
-      // 2. Execute via Local Command Service
-      const result = await CommandService.execute(text, forceConfirmed);
+      // 2. Execute via Local Command Service passing the active language
+      const result = await CommandService.execute(text, forceConfirmed, activeLanguage);
 
-      // 3. Check if sensitive action requires confirmation
+      // 3. If an application was targeted, automatically open the simulated window!
+      if (result.openedApp) {
+        setActiveAppWindow(result.openedApp);
+      }
+
+      // 4. Check if sensitive action requires confirmation
       if (result.requiresConfirmation && result.permissionType) {
         setPendingPermission({
           id: `perm_${Date.now()}`,
           commandText: text,
           permissionType: result.permissionType,
-          actionTitle: result.confirmationMessage || 'Xavfsiz amal tasdig‘i',
-          details: result.confirmationMessage || 'Ushbu amal kompyuteringizda bajarilishidan oldin tasdiqlashingiz kerak.',
+          actionTitle: result.confirmationMessage || strings.permissionModal.title,
+          details: result.confirmationMessage || strings.permissionModal.warning,
           onConfirm: () => {
             setPendingPermission(null);
             executeCommandProcess(text, true);
@@ -134,7 +168,7 @@ export default function App() {
             const cancelMsg: ChatMessage = {
               id: `msg_cancel_${Date.now()}`,
               sender: 'jarvis',
-              text: `⚠️ Amal foydalanuvchi tomonidan bekor qilindi: "${text}"`,
+              text: `⚠️ ${activeLanguage === 'en' ? 'Action cancelled by user' : activeLanguage === 'ru' ? 'Действие отменено пользователем' : 'Amal foydalanuvchi tomonidan bekor qilindi'}: "${text}"`,
               timeFormatted: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
               timestamp: Date.now(),
               status: 'error',
@@ -147,7 +181,7 @@ export default function App() {
         return;
       }
 
-      // 4. Append JARVIS execution response
+      // 5. Append JARVIS execution response
       const jarvisMsg: ChatMessage = {
         id: `msg_jarvis_${Date.now()}`,
         sender: 'jarvis',
@@ -187,7 +221,7 @@ export default function App() {
       const errorMsg: ChatMessage = {
         id: `msg_err_${Date.now()}`,
         sender: 'jarvis',
-        text: `❌ Xatolik yuz berdi: ${err.message || 'Lokal xatolik'}`,
+        text: `❌ ${err.message || 'Lokal xatolik'}`,
         timeFormatted: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
         timestamp: Date.now(),
         status: 'error',
@@ -242,25 +276,81 @@ export default function App() {
         activeChatId={activeChat.id}
         onSelectChat={handleSelectChat}
         agentName={settings.agentName}
+        language={activeLanguage}
         isMobileOpen={isMobileSidebarOpen}
         onCloseMobile={() => setIsMobileSidebarOpen(false)}
       />
 
       {/* Main Content Area */}
       <div className="flex-1 flex flex-col h-full min-w-0 relative">
-        {/* Mobile Header with Hamburger */}
-        <div className="md:hidden h-14 px-4 bg-[#0a0f18] border-b border-cyan-900/30 flex items-center justify-between z-20 shrink-0">
-          <button
-            onClick={() => setIsMobileSidebarOpen(true)}
-            className="p-2 rounded-xl text-zinc-400 hover:text-cyan-400 hover:bg-cyan-950/40"
-            title="Menyuni ochish"
-          >
-            <Menu className="w-5 h-5" />
-          </button>
-          <span className="font-bold text-cyan-300 text-sm tracking-wider">
-            {settings.agentName} • LOCAL AGENT
-          </span>
-          <div className="w-9" />
+        {/* Top Bar for Desktop and Mobile (Includes Hamburger & Language Switcher) */}
+        <div className="h-12 px-4 bg-[#080d17] border-b border-cyan-900/30 flex items-center justify-between z-20 shrink-0 select-none">
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => setIsMobileSidebarOpen(true)}
+              className="md:hidden p-1.5 rounded-xl text-zinc-400 hover:text-cyan-400 hover:bg-cyan-950/40"
+              title="Menyu"
+            >
+              <Menu className="w-5 h-5" />
+            </button>
+            <span className="font-bold text-cyan-300 text-xs md:text-sm tracking-wider flex items-center gap-1.5 font-mono">
+              <span className="w-2 h-2 rounded-full bg-cyan-400 animate-pulse" />
+              {settings.agentName}
+              <span className="text-[10px] uppercase px-1.5 py-0.5 rounded bg-cyan-950/80 border border-cyan-500/30 text-cyan-400 font-mono">
+                v1.4
+              </span>
+            </span>
+          </div>
+
+          {/* Center / Right: Quick Language Switcher & App Launcher trigger */}
+          <div className="flex items-center gap-2">
+            {/* 1-Click Language Switcher (UZ / EN / RU) */}
+            <div className="flex items-center p-0.5 bg-black/60 border border-cyan-900/40 rounded-xl">
+              <button
+                onClick={() => handleSetLanguage('uz')}
+                className={`px-2 py-0.5 rounded-lg text-[11px] font-mono font-bold transition-all ${
+                  activeLanguage === 'uz'
+                    ? 'bg-cyan-500/25 text-cyan-300 border border-cyan-400/50 shadow-[0_0_10px_rgba(0,240,255,0.2)]'
+                    : 'text-zinc-500 hover:text-zinc-300'
+                }`}
+                title="O‘zbekcha"
+              >
+                UZ
+              </button>
+              <button
+                onClick={() => handleSetLanguage('en')}
+                className={`px-2 py-0.5 rounded-lg text-[11px] font-mono font-bold transition-all ${
+                  activeLanguage === 'en'
+                    ? 'bg-cyan-500/25 text-cyan-300 border border-cyan-400/50 shadow-[0_0_10px_rgba(0,240,255,0.2)]'
+                    : 'text-zinc-500 hover:text-zinc-300'
+                }`}
+                title="English"
+              >
+                EN
+              </button>
+              <button
+                onClick={() => handleSetLanguage('ru')}
+                className={`px-2 py-0.5 rounded-lg text-[11px] font-mono font-bold transition-all ${
+                  activeLanguage === 'ru'
+                    ? 'bg-cyan-500/25 text-cyan-300 border border-cyan-400/50 shadow-[0_0_10px_rgba(0,240,255,0.2)]'
+                    : 'text-zinc-500 hover:text-zinc-300'
+                }`}
+                title="Русский"
+              >
+                RU
+              </button>
+            </div>
+
+            {/* Quick App launcher button */}
+            <button
+              onClick={() => setActiveAppWindow('calculator')}
+              className="hidden sm:flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-cyan-950/60 hover:bg-cyan-900/60 border border-cyan-500/30 text-cyan-300 text-xs font-mono transition-all"
+              title="Windows Ilovalari"
+            >
+              <LayoutGrid className="w-3.5 h-3.5 text-cyan-400" />
+              <span>{strings.header.appsDock}</span>
+            </button>
+          </div>
         </div>
 
         {/* View Switcher */}
@@ -273,6 +363,8 @@ export default function App() {
               onRenameChat={(newTitle) => handleRenameChat(activeChat.id, newTitle)}
               agentName={settings.agentName}
               isProcessing={isProcessing}
+              language={activeLanguage}
+              onOpenApp={(appId) => setActiveAppWindow(appId)}
             />
           )}
 
@@ -342,6 +434,15 @@ export default function App() {
           pending={pendingPermission}
           onConfirm={pendingPermission.onConfirm}
           onCancel={pendingPermission.onCancel}
+        />
+      )}
+
+      {/* Interactive Simulated Windows Application Modal */}
+      {activeAppWindow && (
+        <WindowsAppModal
+          appId={activeAppWindow}
+          onClose={() => setActiveAppWindow(null)}
+          language={activeLanguage}
         />
       )}
     </div>
