@@ -206,6 +206,38 @@ export function parseLocalCommand(rawInput: string): ParseResult {
     }
   }
 
+  // 2.5 Multi-language Application Close Pattern:
+  // "close <app>", "exit <app>", "stop <app>", "<app> yop", "<app>ni yop", "yop <app>", "закрыть <app>"
+  const isAppCloseIntent = /^(?:close|exit|stop|kill|yop|o['']?chir|ochir|закрыть|закрой|выйти|выключить)\s+(.+)$/i.test(input) ||
+                          /(?:yop|ni\s*yop)$/i.test(input);
+
+  if (isAppCloseIntent) {
+    let targetApp = '';
+    if (/(?:calc|calculator|kalkulyator|калькулятор)/i.test(input)) targetApp = 'calculator';
+    else if (/(?:clock|soat|budilnik|часы|будильник|таймер|alarms|timer)/i.test(input)) targetApp = 'clock';
+    else if (/(?:cmd|terminal|command prompt|powershell|командн|терминал)/i.test(input)) targetApp = 'cmd';
+    else if (/(?:notepad|bloknot|блокнот|daftar|matn muharriri)/i.test(input)) targetApp = 'notepad';
+    else if (/(?:paint|mspaint|паинт|рисовани)/i.test(input)) targetApp = 'paint';
+    else if (/(?:file explorer|explorer|fayl menejeri|проводник)/i.test(input)) targetApp = 'explorer';
+    else if (/(?:task manager|taskmgr|диспетчер задач|vazifalar menejeri|dispetcher)/i.test(input)) targetApp = 'taskmgr';
+    else if (/(?:settings|sozlamalar|настройки|параметры)/i.test(input)) targetApp = 'settings';
+    else if (/(?:browser|brauzer|chrome|хром)/i.test(input)) targetApp = 'browser';
+    else if (/(?:control panel|boshqaruv paneli|панель управления|control)/i.test(input)) targetApp = 'control';
+    else if (/(?:calendar|kalendar|календарь|taqvim)/i.test(input)) targetApp = 'calendar';
+
+    if (targetApp) {
+      return {
+        recognized: true,
+        commandId: `app_close_${targetApp}`,
+        category: 'applications',
+        pluginId: 'system_plugin',
+        title: `Close ${targetApp}`,
+        permissionType: 'application_launch',
+        args: { app: targetApp },
+      };
+    }
+  }
+
   // 3. Multi-language Open Folders:
   // "open downloads", "downloads och", "открыть загрузки", etc.
   if (
@@ -357,14 +389,39 @@ export function parseLocalCommand(rawInput: string): ParseResult {
     };
   }
 
-  // 11. Time & Date:
-  if (/(?:vaqt|soat|sana|bugun qanday kun|bugungi sana|time|date|время|дата|сколько время|который час)/i.test(input)) {
+  // 11. Help:
+  if (/^(?:help|yordam|pomosh|помощь|команды|\?)$/i.test(input) || /(?:barcha buyruqlar|buyruqlar ro['']?yxati|spisok komand)/i.test(input)) {
+    return {
+      recognized: true,
+      commandId: 'sys_help',
+      category: 'system',
+      pluginId: 'system_plugin',
+      title: 'Help Catalog',
+      permissionType: 'system_settings',
+      args: {},
+    };
+  }
+
+  // 11.5 Time & Date (Distinguished):
+  if (/^(?:date|sana|дата|bugungi sana|bugun qanday kun|bugun nima kun|today date)$/i.test(input)) {
+    return {
+      recognized: true,
+      commandId: 'sys_date',
+      category: 'system',
+      pluginId: 'system_plugin',
+      title: 'Date (Sana)',
+      permissionType: 'system_settings',
+      args: {},
+    };
+  }
+
+  if (/^(?:time|vaqt|soat|hozirgi vaqt|soat necha|vaqt necha|время|сколько времени|который час)$/i.test(input)) {
     return {
       recognized: true,
       commandId: 'sys_time',
       category: 'system',
       pluginId: 'system_plugin',
-      title: 'Time & Date (Vaqt va Sana)',
+      title: 'Time (Vaqt)',
       permissionType: 'system_settings',
       args: {},
     };
@@ -464,21 +521,22 @@ export function parseLocalCommand(rawInput: string): ParseResult {
   // Fallback: Unrecognized
   return {
     recognized: false,
-    unrecognizedReason: 'Buyruq tanilmadi / Command not recognized / Команда не распознана',
+    unrecognizedReason: 'Noma‘lum buyruq kiritildi. Barcha buyruqlar va qo‘llanmani ko‘rish uchun "help" deb yozing.',
     suggestedCommands: [
+      'help',
+      'time',
+      'date',
       'open calculator',
+      'close calculator',
       'open cmd',
-      'open clock',
+      'close cmd',
       'open notepad',
+      'close notepad',
       'open paint',
       'open file explorer',
       'open task manager',
       'open settings',
-      'open browser',
-      'open control panel',
-      'open calendar',
       'Tizim holati / System status',
-      'Vaqt / Time',
       'Batareya / Battery',
       'Kesh tozalash / Clean temp',
       'Lock PC',

@@ -9,34 +9,47 @@ export const Updates: React.FC = () => {
 
   const versions = [
     {
-      version: 'v1.4.0',
-      tag: lang === 'en' ? 'JARVIS v1.4 Latest Update' : lang === 'ru' ? 'JARVIS v1.4 Новое обновление' : 'JARVIS v1.4 Yangi yangilanish',
+      version: 'v1.5.0',
+      tag: lang === 'en' ? 'JARVIS v1.5 Latest Update' : lang === 'ru' ? 'JARVIS v1.5 Новое обновление' : 'JARVIS v1.5 Yangi yangilanish',
       current: true,
-      date: lang === 'en' ? 'September 2026' : lang === 'ru' ? 'Сентябрь 2026' : 'Sentabr 2026',
+      date: lang === 'en' ? 'October 2026' : lang === 'ru' ? 'Октябрь 2026' : 'Oktabr 2026',
       changes: lang === 'en' ? [
-        { title: 'Multi-Language Support (UZ, EN, RU)', desc: 'Complete localization for Uzbek, English, and Russian applied across the entire interface, navigation, commands, and speech recognition.' },
-        { title: 'Expanded 11 Windows Applications', desc: 'Added Calculator, Clock & Timer, CMD / Terminal, Notepad, MS Paint, File Explorer, Task Manager, Settings, Browser, Control Panel, and Calendar.' },
-        { title: 'Natural Command Invocations', desc: 'Direct commands supported in all 3 languages (e.g., "open calculator", "open cmd", "open clock", "open notepad", "open paint", "open file explorer", "open task manager", "open settings", "open browser", "open control panel", "open calendar").' },
-        { title: 'Interactive Windows Desktop Modals', desc: 'Built-in authentic Windows acrylic modals with interactive Calculator, Clock/Stopwatch, CMD terminal shell, Notepad editor, Paint canvas, Task Manager monitoring, and Calendar.' },
-        { title: 'Full v1.3 Compatibility Preserved', desc: 'All existing functions kept intact: standard folder browsing, temp file cleaner, audio volume/mute, PC lock, shutdown/restart, diagnostics, and virtual filesystem.' },
-        { title: 'Cyberpunk HUD UI & v1.4 Badges', desc: 'Polished top bar with quick 1-click language switcher (UZ, EN, RU), quick app launch dock, and v1.4 LOCAL AGENT indicator.' },
-        { title: 'Strictly Offline Architecture', desc: 'Zero AI, zero external APIs, zero cloud backends. 100% deterministic local desktop rule execution.' },
+        { title: 'Voice Commands (Speech Recognition)', desc: 'Added microphone button for voice recognition in Uzbek, English, and Russian matching selected language.' },
+        { title: 'Text-to-Speech (TTS) Voice Responses', desc: 'JARVIS now speaks out responses aloud with toggle control in Settings and quick speaker toggle in header.' },
+        { title: 'Command History Navigation', desc: 'Saved last 20 commands with seamless Arrow Up (↑) / Arrow Down (↓) keyboard recall in chat input.' },
+        { title: 'Local Settings Persistence & Export', desc: 'Auto-saved settings restored upon application reopen, plus direct settings.json export/import support.' },
+        { title: 'New Commands ("close <app>", "time", "date", "help")', desc: 'Added commands to close applications, query exact time and calendar date, and full help directory.' },
+        { title: 'Smart Unknown Command Guidance', desc: 'Friendly unrecognized command handling that provides helpful suggestions and recommends typing "help".' },
+        { title: 'Dark / Light Theme Switching', desc: '1-click switcher between futuristic Cyberpunk Dark and clean Modern Light interfaces.' },
+        { title: 'Command Execution Log Panel', desc: 'Real-time sliding log drawer tracking every command with timestamp, execution status (OK/ERR), and category.' },
       ] : lang === 'ru' ? [
-        { title: 'Мультиязычность (UZ, EN, RU)', desc: 'Полная поддержка узбекского, английского и русского языков для всего интерфейса, меню, команд и голосового распознавания речи.' },
-        { title: 'Расширенный запуск 11 приложений', desc: 'Добавлены: Калькулятор, Часы и Таймер, Командная строка (CMD), Блокнот (Notepad), MS Paint, Проводник (Explorer), Диспетчер задач, Параметры Windows, Браузер, Панель управления и Календарь.' },
-        { title: 'Естественные команды запуска', desc: 'Поддержка прямых команд на 3 языках (например: "open calculator", "open cmd", "open clock", "open notepad", "открыть проводник", "открыть диспетчер задач", "открыть настройки").' },
-        { title: 'Интерактивные окна приложений Windows', desc: 'Встроенные интерактивные окна: рабочий калькулятор, секундомер/часы, интерактивный терминал CMD, редактор Notepad, полотно Paint, мониторинг ресурсов и календарь.' },
-        { title: 'Сохранены все функции v1.3', desc: 'Все возможности v1.3 сохранены: очистка кэша, папки Downloads/Desktop, звук/mute, блокировка ПК, выключение, статус системы и буфер обмена.' },
-        { title: 'Обновленный дизайн и значок v1.4', desc: 'Быстрый переключатель языка (UZ, EN, RU) в шапке, панель быстрого доступа к приложениям и значок v1.4 LOCAL AGENT.' },
-        { title: '100% Локальный режим', desc: 'Никаких сторонних ИИ, API ключей или облачных серверов. Полная работа через локальный Windows движок.' },
+        { title: 'Голосовые команды (Speech Recognition)', desc: 'Добавлена кнопка микрофона с распознаванием речи на узбекском, английском и русском языках.' },
+        { title: 'Синтез речи (Text-to-Speech)', desc: 'JARVIS озвучивает ответы голосом с возможностью включения/отключения в Настройках и шапке.' },
+        { title: 'История команд (20 последних)', desc: 'Сохранение 20 последних команд и удобный вызов стрелками Вверх (↑) и Вниз (↓) в поле ввода.' },
+        { title: 'Локальное сохранение (settings.json)', desc: 'Автоматическое сохранение настроек при перезапуске, а также экспорт/импорт файла settings.json.' },
+        { title: 'Новые команды ("close <app>", "time", "date", "help")', desc: 'Закрытие приложений, запрос точного времени, даты и подробный каталог всех команд.' },
+        { title: 'Понятные сообщения об ошибках', desc: 'При неизвестной команде выводятся полезные подсказки и рекомендация ввести "help".' },
+        { title: 'Переключение тем (Dark / Light)', desc: 'Удобное переключение между темной темой и светлым интерфейсом в 1 клик.' },
+        { title: 'Панель логов выполнения с временем', desc: 'Встроенная панель журналов с фиксацией времени выполнения каждой команды и статусом.' },
       ] : [
-        { title: 'Ko‘p tillilik (Uzbek, English, Russian)', desc: 'Tanlangan til (O‘zbekcha, English, Русский) butun interfeys, navigatsiya, xabarlar va ovozli/yozma buyruqlarga to‘liq tatbiq etildi.' },
-        { title: '11 ta Lokal Windows Ilovalari', desc: 'Kalkulyatordan tashqari Clock (Soat), CMD (Terminal), Notepad (Bloknot), Paint, File Explorer, Task Manager, Settings, Browser, Control Panel va Calendar qo‘shildi.' },
-        { title: 'Tabiiy Buyruqlar bilan Ochish', desc: '"open calculator", "open cmd", "open clock", "open notepad", "open paint", "open file explorer", "open task manager", "open settings", "open browser", "open control panel", "open calendar" buyruqlari har 3 tilda to‘liq ishlaydi.' },
-        { title: 'Interaktiv Windows Darchalari', desc: 'Har bir ilova uchun interfeys ichida ishlovchi interaktiv Windows 11 darchasi: ishlovchi kalkulyator, soat/sekundomer, CMD buyruqlar satri, bloknot, rasm chizish, vazifalar dispetcheri va kalendar.' },
-        { title: 'v1.3 ning Barcha Funksiyalari Saqlandi', desc: 'Fayllar tizimi, Downloads/Desktop papkalari, kesh tozalash, ovoz/mute, Lock PC, restart/shutdown, diagnostika va veb havolalar to‘liq saqlangan holda takomillashtirildi.' },
-        { title: 'UI Yaxshilanishi va v1.4 Badge', desc: 'Tepada tezkor til tanlagich (UZ, EN, RU), tezkor ilovalar paneli va yangi v1.4 LOCAL AGENT yorlig‘i qo‘shildi.' },
-        { title: '100% Oflayn va No-AI Arxitektura', desc: 'Hech qanday AI API, server yoki tashqi kalitlarsiz faqat kompyuterning lokal qoidalari orqali ishlaydi.' },
+        { title: 'Ovozli buyruqlar (Speech Recognition)', desc: 'Mikrofon tugmasi qo‘shildi. O‘zbekcha, English va Rus tillaridagi ovozli buyruqlarni mukammal taniydi.' },
+        { title: 'Matnli javob ovozi (Text-to-Speech)', desc: 'JARVIS javoblarini ovoz bilan aytadi. Sozlamalarda va sarlavhada yoqish/o‘chirish tugmasi mavjud.' },
+        { title: 'Buyruqlar Tarixi (Oxirgi 20 ta)', desc: 'Oxirgi 20 ta buyruq saqlanadi. Yuqoriga (↑) va pastga (↓) strelka orqali qayta chaqirish mumkin.' },
+        { title: 'Lokal Sozlamalar va settings.json', desc: 'Til, ovoz va boshqa parametrlar lokal saqlanadi va dastur qayta ochilganda tiklanadi. settings.json eksport/import mavjud.' },
+        { title: 'Yangi buyruqlar ("close <ilova>", "time", "date", "help")', desc: 'Ilovalarni yopish, aniq vaqt va sana hamda barcha buyruqlar katalogi ("help") qo‘shildi.' },
+        { title: 'Tushunarli Noma’lum Buyruq Xabari', desc: 'Noma’lum buyruq kiritilganda tushunarli tavsiyalar chiqadi va "help" ni taklif qiladi.' },
+        { title: 'Tema almashtirish (Dark / Light)', desc: 'Header va sozlamalarda Dark HUD hamda Light interfeys o‘rtasida 1-bosish bilan almashish.' },
+        { title: 'Buyruqlar Log Paneli (Vaqt bilan)', desc: 'Har bir buyruqning bajarilish vaqti va holatini (OK/ERR) ko‘rsatuvchi interaktiv log paneli.' },
+      ],
+    },
+    {
+      version: 'v1.4.0',
+      tag: 'v1.4 Barqaror',
+      current: false,
+      date: 'Sentabr 2026',
+      changes: [
+        { title: 'Ko‘p tillilik (Uzbek, English, Russian)', desc: 'Tanlangan til butun interfeys, navigatsiya va buyruqlarga to‘liq tatbiq etildi.' },
+        { title: '11 ta Lokal Windows Ilovalari', desc: 'Kalkulyator, Clock, CMD, Notepad, Paint, Explorer, Task Manager, Settings, Browser, Control Panel, Calendar.' },
       ],
     },
     {
@@ -87,7 +100,7 @@ export const Updates: React.FC = () => {
       <div className="p-4 rounded-2xl bg-cyan-950/30 border border-cyan-500/30 flex items-center gap-3">
         <Sparkles className="w-5 h-5 text-cyan-400 shrink-0" />
         <div className="text-xs text-cyan-200">
-          <strong>JARVIS v1.4:</strong> {lang === 'en' ? 'You are running the latest v1.4.0 release with 11 Windows applications and multi-language support (UZ, EN, RU).' : lang === 'ru' ? 'Вы используете версию v1.4.0 с поддержкой 11 приложений Windows и 3 языков (UZ, EN, RU).' : 'Siz eng so‘nggi v1.4.0 versiyasidasiz. 11 ta Windows ilovasi va 3 ta til (Uzbek, English, Russian) to‘liq faol.'}
+          <strong>JARVIS v1.5:</strong> {lang === 'en' ? 'You are running the latest v1.5.0 release with speech recognition, TTS voice response, command history, and execution logs.' : lang === 'ru' ? 'Вы используете версию v1.5.0 с распознаванием речи, озвучкой TTS, историей команд и журналом логов.' : 'Siz eng so‘nggi v1.5.0 versiyasidasiz. Ovozli buyruqlar, TTS javob ovozi, buyruqlar tarixi va log paneli to‘liq faol.'}
         </div>
       </div>
 

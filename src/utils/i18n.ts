@@ -32,6 +32,11 @@ export interface I18nDict {
     langSelect: string;
     appsDock: string;
     openAppTitle: string;
+    themeToggle: string;
+    ttsToggle: string;
+    ttsActive: string;
+    ttsInactive: string;
+    logsPanel: string;
   };
   chat: {
     welcomeTitle: string;
@@ -59,6 +64,7 @@ export interface I18nDict {
     archive: string;
     unarchive: string;
     archivedSection: string;
+    historyTip: string;
   };
   apps: {
     calculator: { name: string; desc: string };
@@ -86,15 +92,23 @@ export interface I18nDict {
     languageUz: string;
     languageEn: string;
     languageRu: string;
+    theme: string;
+    themeDark: string;
+    themeLight: string;
     animations: string;
     animationsDesc: string;
     sound: string;
     soundDesc: string;
+    tts: string;
+    ttsDesc: string;
     timestamps: string;
     timestampsDesc: string;
     permissionsNotice: string;
     storageTitle: string;
     storageDesc: string;
+    exportSettings: string;
+    importSettings: string;
+    settingsSaved: string;
     clearAllBtn: string;
     clearAllConfirm: string;
   };
@@ -141,7 +155,7 @@ export const TRANSLATIONS: Record<SupportedLanguage, I18nDict> = {
       collapse: 'Yon panelni yig‘ish',
       expand: 'Yon panelni ochish',
       offlineMode: 'No AI • 100% Oflayn',
-      versionBadge: 'v1.4 LOCAL',
+      versionBadge: 'v1.5 LOCAL',
     },
     header: {
       offline: '100% Oflayn',
@@ -151,14 +165,19 @@ export const TRANSLATIONS: Record<SupportedLanguage, I18nDict> = {
       langSelect: 'Tilni tanlash',
       appsDock: 'Ilovalar',
       openAppTitle: 'Windows Ilovalarini Ishga Tushirish',
+      themeToggle: 'Mavzuni almashtirish (Dark / Light)',
+      ttsToggle: 'Ovozli javob (Text-to-Speech)',
+      ttsActive: 'Ovozli javob faol',
+      ttsInactive: 'Ovozli javob o‘chiq',
+      logsPanel: 'Log Paneli',
     },
     chat: {
-      welcomeTitle: 'JARVIS Local Agent v1.4',
-      welcomeSubtitle: '100% Oflayn Windows Yordamchisi. Hech qanday AI yoki tashqi API ishlatilmaydi.',
-      welcomeTip: 'Quyidagi tugmalardan birini bosing yoki buyruq yozing: "open calculator", "open cmd", "open clock", "open notepad", "open paint", "open file explorer", "open task manager", "open settings", "open browser", "open control panel", "open calendar"',
-      placeholder: 'Command yozing... (masalan: "open calculator", "open cmd", "open clock", "open notepad")',
-      voiceActive: 'Ovozli tinglash faol...',
-      voiceInactive: 'Ovozli buyruq berish',
+      welcomeTitle: 'JARVIS Local Agent v1.5',
+      welcomeSubtitle: '100% Oflayn Windows Yordamchisi. Speech Recognition va Text-to-Speech ovozli javoblari bilan.',
+      welcomeTip: '💡 Barcha buyruqlarni ko‘rish uchun "help" deb yozing. Shuningdek: "open calculator", "close calculator", "time", "date", "status", "clean temp". Yuqoriga/pastga (↑/↓) strelka orqali buyruqlar tarixini chaqiring.',
+      placeholder: 'Command yozing... (masalan: "help", "time", "open cmd", "close cmd")',
+      voiceActive: 'Ovozli tinglash faol (gapiring)...',
+      voiceInactive: 'Ovozli buyruq berish (Mikrofon)',
       voiceNotSupported: 'Brauzeringiz ovozli tanib olishni qo‘llab-quvvatlamaydi.',
       quick: 'Tezkor:',
       quickActionsTitle: 'Tezkor Lokal Amallar',
@@ -178,6 +197,7 @@ export const TRANSLATIONS: Record<SupportedLanguage, I18nDict> = {
       archive: 'Arxivlash',
       unarchive: 'Arxivdan chiqarish',
       archivedSection: 'Arxivlangan chatlar',
+      historyTip: 'Tarix: ↑ va ↓ tugmalari orqali oldingi 20 ta buyruqni chaqirishingiz mumkin',
     },
     apps: {
       calculator: { name: 'Kalkulyator', desc: 'Windows kalkulyatori (calc.exe)' },
@@ -193,19 +213,20 @@ export const TRANSLATIONS: Record<SupportedLanguage, I18nDict> = {
       calendar: { name: 'Kalendar', desc: 'Windows kalendari va rejalashtiruvchi (outlookcal:)' },
     },
     quickChips: [
+      'help',
+      'time',
+      'date',
       'open calculator',
+      'close calculator',
       'open cmd',
-      'open clock',
+      'close cmd',
       'open notepad',
+      'close notepad',
       'open paint',
       'open file explorer',
       'open task manager',
       'open settings',
-      'open browser',
-      'open control panel',
-      'open calendar',
       'Tizim holati',
-      'Vaqt',
       'Batareya',
       'Kesh tozalash',
       'Lock PC',
@@ -222,15 +243,23 @@ export const TRANSLATIONS: Record<SupportedLanguage, I18nDict> = {
       languageUz: 'O‘zbekcha',
       languageEn: 'English',
       languageRu: 'Русский',
+      theme: 'Mavzu (Theme)',
+      themeDark: 'Qorong‘i (Dark HUD)',
+      themeLight: 'Yorug‘ (Light Mode)',
       animations: 'Silliq animatsiyalar',
       animationsDesc: 'O‘tish va UI vizual effektlari',
       sound: 'Tovush effektlari',
       soundDesc: 'Buyruq bajarilgandagi audio bildirishnoma',
+      tts: 'Ovozli javob (Text-to-Speech)',
+      ttsDesc: 'JARVIS javoblarini ovoz orqali aytib eshittirish',
       timestamps: 'Vaqt tamg‘alari (Timestamps)',
       timestampsDesc: 'Har bir xabarda vaqtni ko‘rsatish',
       permissionsNotice: 'Xavfsizlik Whitelist Nazorati: JARVIS faqat siz ruxsat bergan buyruqlarni bajaradi.',
-      storageTitle: 'Lokal Xotira va Kesh',
-      storageDesc: 'Barcha chatlar va fayllar brauzer/tizim xotirasida saqlanadi.',
+      storageTitle: 'Lokal Xotira va Sozlamalar Fayli',
+      storageDesc: 'Barcha chatlar va parametrlar lokal saqlanadi. settings.json orqali eksport/import qilishingiz mumkin.',
+      exportSettings: 'settings.json faylini yuklab olish',
+      importSettings: 'settings.json faylidan yuklash',
+      settingsSaved: 'Sozlamalar settings.json ga muvaffaqiyatli saqlandi',
       clearAllBtn: 'Barcha ma’lumotlarni tozalash',
       clearAllConfirm: 'Haqiqatan ham barcha chatlar va sozlamalarni o‘chirmoqchimisiz?',
     },
@@ -276,7 +305,7 @@ export const TRANSLATIONS: Record<SupportedLanguage, I18nDict> = {
       collapse: 'Collapse Sidebar',
       expand: 'Expand Sidebar',
       offlineMode: 'No AI • 100% Offline',
-      versionBadge: 'v1.4 LOCAL',
+      versionBadge: 'v1.5 LOCAL',
     },
     header: {
       offline: '100% Offline',
@@ -286,14 +315,19 @@ export const TRANSLATIONS: Record<SupportedLanguage, I18nDict> = {
       langSelect: 'Language',
       appsDock: 'Apps',
       openAppTitle: 'Launch Windows Applications',
+      themeToggle: 'Switch Theme (Dark / Light)',
+      ttsToggle: 'Voice Output (Text-to-Speech)',
+      ttsActive: 'Voice Output On',
+      ttsInactive: 'Voice Output Off',
+      logsPanel: 'Log Panel',
     },
     chat: {
-      welcomeTitle: 'JARVIS Local Agent v1.4',
-      welcomeSubtitle: '100% Offline Windows Assistant. Zero external AI and zero cloud APIs.',
-      welcomeTip: 'Click any application button below or type commands: "open calculator", "open cmd", "open clock", "open notepad", "open paint", "open file explorer", "open task manager", "open settings", "open browser", "open control panel", "open calendar"',
-      placeholder: 'Type a command... (e.g., "open calculator", "open cmd", "open clock", "open notepad")',
-      voiceActive: 'Listening...',
-      voiceInactive: 'Voice Input',
+      welcomeTitle: 'JARVIS Local Agent v1.5',
+      welcomeSubtitle: '100% Offline Windows Assistant. Equipped with Speech Recognition and Text-to-Speech output.',
+      welcomeTip: '💡 Type "help" to see all commands. Also supports: "open calculator", "close calculator", "time", "date", "status", "clean temp". Use Up/Down (↑/↓) arrows to cycle through command history.',
+      placeholder: 'Type command... (e.g., "help", "time", "open cmd", "close cmd")',
+      voiceActive: 'Listening (speak now)...',
+      voiceInactive: 'Voice Input (Microphone)',
       voiceNotSupported: 'Your browser does not support Speech Recognition.',
       quick: 'Quick:',
       quickActionsTitle: 'Quick Local Actions',
@@ -313,6 +347,7 @@ export const TRANSLATIONS: Record<SupportedLanguage, I18nDict> = {
       archive: 'Archive',
       unarchive: 'Unarchive',
       archivedSection: 'Archived Chats',
+      historyTip: 'History: Press ↑ and ↓ arrows to recall last 20 commands',
     },
     apps: {
       calculator: { name: 'Calculator', desc: 'Windows Calculator (calc.exe)' },
@@ -328,19 +363,20 @@ export const TRANSLATIONS: Record<SupportedLanguage, I18nDict> = {
       calendar: { name: 'Calendar', desc: 'Windows Calendar & Schedule (outlookcal:)' },
     },
     quickChips: [
+      'help',
+      'time',
+      'date',
       'open calculator',
+      'close calculator',
       'open cmd',
-      'open clock',
+      'close cmd',
       'open notepad',
+      'close notepad',
       'open paint',
       'open file explorer',
       'open task manager',
       'open settings',
-      'open browser',
-      'open control panel',
-      'open calendar',
       'System status',
-      'Time',
       'Battery',
       'Clean temp',
       'Lock PC',
@@ -357,15 +393,23 @@ export const TRANSLATIONS: Record<SupportedLanguage, I18nDict> = {
       languageUz: 'O‘zbekcha',
       languageEn: 'English',
       languageRu: 'Русский',
+      theme: 'Theme',
+      themeDark: 'Dark HUD',
+      themeLight: 'Light Mode',
       animations: 'Smooth Animations',
       animationsDesc: 'UI transitions and visual effects',
       sound: 'Sound Effects',
       soundDesc: 'Audio chime upon command execution',
+      tts: 'Voice Output (Text-to-Speech)',
+      ttsDesc: 'Speak JARVIS responses aloud using local speech synthesis',
       timestamps: 'Timestamps',
       timestampsDesc: 'Display time on each message',
       permissionsNotice: 'Security Whitelist Control: JARVIS only runs explicitly permitted local operations.',
-      storageTitle: 'Local Data & Cache',
-      storageDesc: 'All chats, virtual files and configurations are stored offline on this machine.',
+      storageTitle: 'Local Storage & settings.json',
+      storageDesc: 'All configurations and chats are saved offline. You can export/import settings.json.',
+      exportSettings: 'Export settings.json',
+      importSettings: 'Import settings.json',
+      settingsSaved: 'Settings saved to settings.json successfully',
       clearAllBtn: 'Clear All Local Data',
       clearAllConfirm: 'Are you sure you want to delete all chats and restore default settings?',
     },
@@ -407,11 +451,11 @@ export const TRANSLATIONS: Record<SupportedLanguage, I18nDict> = {
       projects: 'Проекты',
       updates: 'Обновления',
       profile: 'Профиль',
-      newChat: 'Новый чант',
+      newChat: 'Новый чат',
       collapse: 'Свернуть панель',
       expand: 'Развернуть панель',
       offlineMode: 'Без ИИ • 100% Офлайн',
-      versionBadge: 'v1.4 LOCAL',
+      versionBadge: 'v1.5 LOCAL',
     },
     header: {
       offline: '100% Офлайн',
@@ -421,14 +465,19 @@ export const TRANSLATIONS: Record<SupportedLanguage, I18nDict> = {
       langSelect: 'Выбор языка',
       appsDock: 'Приложения',
       openAppTitle: 'Запуск Windows Приложений',
+      themeToggle: 'Сменить тему (Темная / Светлая)',
+      ttsToggle: 'Озвучивание ответов (TTS)',
+      ttsActive: 'Озвучка включена',
+      ttsInactive: 'Озвучка выключена',
+      logsPanel: 'Панель логов',
     },
     chat: {
-      welcomeTitle: 'JARVIS Local Agent v1.4',
-      welcomeSubtitle: '100% Офлайн Windows Ассистент. Никаких внешних ИИ или облачных сервисов.',
-      welcomeTip: 'Нажмите на кнопку любого приложения ниже или введите команду: "open calculator", "open cmd", "open clock", "open notepad", "open paint", "open file explorer", "open task manager", "open settings", "open browser", "open control panel", "open calendar"',
-      placeholder: 'Введите команду... (например: "open calculator", "open cmd", "открыть блокнот", "время")',
-      voiceActive: 'Слушаю команду...',
-      voiceInactive: 'Голосовой ввод',
+      welcomeTitle: 'JARVIS Local Agent v1.5',
+      welcomeSubtitle: '100% Офлайн Windows Ассистент. Распознавание речи и голосовой синтез ответов (Text-to-Speech).',
+      welcomeTip: '💡 Введите "help", чтобы увидеть полный список команд. Также: "open calculator", "close calculator", "time", "date", "status", "clean temp". Стрелки вверх/вниз (↑/↓) вызывают историю команд.',
+      placeholder: 'Введите команду... (например: "help", "time", "open cmd", "close cmd")',
+      voiceActive: 'Слушаю команду (говорите)...',
+      voiceInactive: 'Голосовой ввод (Микрофон)',
       voiceNotSupported: 'Ваш браузер не поддерживает распознавание речи.',
       quick: 'Быстро:',
       quickActionsTitle: 'Быстрые локальные действия',
@@ -448,6 +497,7 @@ export const TRANSLATIONS: Record<SupportedLanguage, I18nDict> = {
       archive: 'В архив',
       unarchive: 'Из архива',
       archivedSection: 'Архивные чаты',
+      historyTip: 'История: Нажимайте ↑ и ↓ для навигации по последним 20 командам',
     },
     apps: {
       calculator: { name: 'Калькулятор', desc: 'Windows Калькулятор (calc.exe)' },
@@ -463,19 +513,20 @@ export const TRANSLATIONS: Record<SupportedLanguage, I18nDict> = {
       calendar: { name: 'Календарь', desc: 'Календарь и планировщик (outlookcal:)' },
     },
     quickChips: [
+      'help',
+      'time',
+      'date',
       'open calculator',
+      'close calculator',
       'open cmd',
-      'open clock',
+      'close cmd',
       'open notepad',
+      'close notepad',
       'open paint',
       'open file explorer',
       'open task manager',
       'open settings',
-      'open browser',
-      'open control panel',
-      'open calendar',
       'Состояние системы',
-      'Время',
       'Батарея',
       'Очистить кэш',
       'Lock PC',
@@ -492,15 +543,23 @@ export const TRANSLATIONS: Record<SupportedLanguage, I18nDict> = {
       languageUz: 'O‘zbekcha',
       languageEn: 'English',
       languageRu: 'Русский',
+      theme: 'Тема (Theme)',
+      themeDark: 'Темная (Dark HUD)',
+      themeLight: 'Светлая (Light Mode)',
       animations: 'Плавная анимация',
       animationsDesc: 'Визуальные эффекты переходов интерфейса',
       sound: 'Звуковые эффекты',
       soundDesc: 'Звуковой сигнал при выполнении команд',
+      tts: 'Озвучивание ответов (TTS)',
+      ttsDesc: 'Произносить ответы JARVIS вслух с помощью встроенного синтеза речи',
       timestamps: 'Метки времени',
       timestampsDesc: 'Показывать время для каждого сообщения',
       permissionsNotice: 'Контроль безопасности: JARVIS выполняет только разрешенные действия.',
-      storageTitle: 'Локальное хранилище и кэш',
-      storageDesc: 'Все чаты и виртуальные файлы сохраняются локально на этом ПК.',
+      storageTitle: 'Локальное хранилище и settings.json',
+      storageDesc: 'Все настройки сохраняются офлайн. Вы можете экспортировать/импортировать settings.json.',
+      exportSettings: 'Экспорт файла settings.json',
+      importSettings: 'Импорт файла settings.json',
+      settingsSaved: 'Настройки успешно сохранены в settings.json',
       clearAllBtn: 'Очистить все локальные данные',
       clearAllConfirm: 'Вы действительно хотите удалить все чаты и восстановить стандартные настройки?',
     },

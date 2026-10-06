@@ -2,6 +2,8 @@ import { CommandExecutionResult, ParseResult, SupportedLanguage } from '../types
 import { parseLocalCommand } from '../utils/parser';
 import { PluginService } from './pluginService';
 import { PermissionService } from './permissionService';
+import { StorageService } from './storageService';
+import { LogService } from './logService';
 import { executeApplicationCommand } from '../commands/applicationCommands';
 import { executeWindowsCommand } from '../commands/windowsCommands';
 import { executeFileCommand } from '../commands/fileCommands';
@@ -22,16 +24,21 @@ export class CommandService {
     const lang: SupportedLanguage = normalizeLang(language);
     const parsed = this.parse(rawInput);
 
+    // Save to command history (last 20)
+    StorageService.addCommandToHistory(rawInput);
+
     if (!parsed.recognized || !parsed.commandId) {
       const suggestionsText = (parsed.suggestedCommands || [])
         .map(c => `• "${c}"`)
         .join('\n');
 
       const fallbackMsg = lang === 'en'
-        ? `❌ ${parsed.unrecognizedReason || 'This command is not supported by JARVIS.'}\n\n💡 Available commands:\n${suggestionsText}\n\n⚙️ See Settings -> Commands Catalog for full list.`
+        ? `❌ Unknown command. Type "help" to view all available commands and syntax.\n\n💡 Quick suggestions:\n${suggestionsText}\n\n⚙️ See Settings -> Commands Catalog for full list.`
         : lang === 'ru'
-        ? `❌ ${parsed.unrecognizedReason || 'Данная команда не поддерживается JARVIS.'}\n\n💡 Доступные команды:\n${suggestionsText}\n\n⚙️ Полный список смотрите в Настройки -> Каталог команд.`
-        : `❌ ${parsed.unrecognizedReason || 'Bu command JARVIS tomonidan qo‘llab-quvvatlanmaydi.'}\n\n💡 Mavjud lokal buyruqlar:\n${suggestionsText}\n\n⚙️ Barcha buyruqlarni ko‘rish uchun Sozlamalar -> Commandlar bo‘limiga kiring.`;
+        ? `❌ Неизвестная команда. Введите "help", чтобы просмотреть список всех команд.\n\n💡 Быстрые подсказки:\n${suggestionsText}\n\n⚙️ Полный список смотрите в Настройки -> Каталог команд.`
+        : `❌ Noma‘lum buyruq kiritildi. Barcha buyruqlar va qo‘llanmani ko‘rish uchun "help" deb yozing.\n\n💡 Tavsiya etilgan buyruqlar:\n${suggestionsText}\n\n⚙️ Barcha buyruqlarni ko‘rish uchun Sozlamalar -> Commandlar bo‘limiga kiring.`;
+
+      LogService.addLog(rawInput, 'error', 'Command unrecognized. Recommended: help', 'unknown');
 
       return {
         success: false,
@@ -47,6 +54,8 @@ export class CommandService {
         ? `⚠️ Плагин "${parsed.pluginId}" отключен. Включите его в разделе «Плагины» или «Настройки».`
         : `⚠️ Ushbu buyruqni bajarish uchun "${parsed.pluginId}" plugini o‘chirilgan.\n\nIltimos, yon menyudagi "Pluginlar" yoki "Sozlamalar" bo‘limiga o‘tib ushbu pluginni faollashtiring.`;
 
+      LogService.addLog(rawInput, 'error', `Plugin disabled: ${parsed.pluginId}`, parsed.category);
+
       return {
         success: false,
         message: pluginMsg,
@@ -60,6 +69,8 @@ export class CommandService {
         : lang === 'ru'
         ? `⛔ Требуемое разрешение (${parsed.permissionType}) отключено в Настройки -> Разрешения.`
         : `⛔ Ushbu amal uchun kerak bo‘lgan huquq (${parsed.permissionType}) Sozlamalar -> Permissionlar bo‘limida o‘chirib qo‘yilgan.`;
+
+      LogService.addLog(rawInput, 'error', `Permission denied: ${parsed.permissionType}`, parsed.category);
 
       return {
         success: false,
@@ -81,6 +92,8 @@ export class CommandService {
           ? `⚠️ Действие (${parsed.title}) требует вашего подтверждения перед запуском. Разрешить?`
           : `⚠️ Ushbu amal (${parsed.title}) kompyuteringizda bajarilishidan oldin tasdiqlashingiz kerak. Ruxsat berasizmi?`;
 
+        LogService.addLog(rawInput, 'info', `Confirmation required: ${parsed.title}`, parsed.category);
+
         return {
           success: false,
           requiresConfirmation: true,
@@ -98,48 +111,66 @@ export class CommandService {
     // 4. Execute the command based on category
     try {
       const args = parsed.args || {};
+      let result: CommandExecutionResult;
 
       switch (parsed.category) {
         case 'applications':
-          return await executeApplicationCommand(parsed.commandId, lang);
+          result = await executeApplicationCommand(parsed.commandId, lang);
+          break;
 
         case 'windows':
-          return await executeWindowsCommand(parsed.commandId, args);
+          result = await executeWindowsCommand(parsed.commandId, args);
+          break;
 
         case 'files':
-          return await executeFileCommand(parsed.commandId, args);
+          result = await executeFileCommand(parsed.commandId, args);
+          break;
 
         case 'browser':
-          return await executeBrowserCommand(parsed.commandId, args);
+          result = await executeBrowserCommand(parsed.commandId, args);
+          break;
 
         case 'system':
         case 'automation': {
           if (parsed.commandId === 'sys_greeting') {
             const greetMsg = lang === 'en'
-              ? `Hello, sir! I am JARVIS, your 100% local Windows assistant operating completely offline without any AI or cloud LLM dependencies.\n\nHow may I help you today? (e.g. "open calculator", "open cmd", "open clock", "open notepad", "open paint", "system status", "lock pc")`
+              ? `Hello, sir! I am JARVIS, your 100% local Windows assistant operating completely offline without any AI or cloud LLM dependencies.\n\nType "help" to view all available commands, or speak using the microphone button.`
               : lang === 'ru'
-              ? `Здравствуйте, сэр! Я локальный ассистент JARVIS, работающий на 100% офлайн без внешних ИИ и сторонних API.\n\nЧем могу помочь? (Например: "open calculator", "open cmd", "open clock", "open notepad", "открыть проводник", "состояние системы", "заблокировать пк")`
-              : `Salom, ser! Men 100% lokal rejimda ishlovchi JARVIS yordamchisiman. Hech qanday tashqi AI yoki internet LLM xizmatlariga bog‘lanmagan holda, to‘g‘ridan-to‘g‘ri kompyuteringiz dasturlari va tizim buyruqlarini bajarishga tayyorman.\n\nSizga qanday yordam bera olaman? (Masalan: "open calculator", "open cmd", "open clock", "open notepad", "open paint", "tizim holati", "Downloads papkasini och")`;
+              ? `Здравствуйте, сэр! Я локальный ассистент JARVIS, работающий на 100% офлайн без внешних ИИ и сторонних API.\n\nВведите "help", чтобы просмотреть все команды, или воспользуйтесь голосовым вводом через микрофон.`
+              : `Salom, ser! Men 100% lokal rejimda ishlovchi JARVIS yordamchisiman. Hech qanday tashqi AI yoki internet LLM xizmatlariga bog‘lanmagan holda, to‘g‘ridan-to‘g‘ri kompyuteringiz dasturlari va tizim buyruqlarini bajarishga tayyorman.\n\nBarcha buyruqlarni ko‘rish uchun "help" deb yozing yoki mikrofondan foydalaning.`;
 
-            return {
+            result = {
               success: true,
               message: greetMsg,
-              details: 'Engine: Local Rule-Based Desktop Agent v1.4 (No AI APIs)',
+              details: 'Engine: Local Rule-Based Desktop Agent v1.5 (No AI APIs)',
             };
+          } else {
+            result = await executeSystemCommand(parsed.commandId, args, lang);
           }
-          return await executeSystemCommand(parsed.commandId, args);
+          break;
         }
 
         default:
-          return {
+          result = {
             success: false,
             message: '❌ Buyruq toifasi aniqlanmadi / Unknown command category.',
           };
       }
+
+      LogService.addLog(
+        rawInput,
+        result.success ? 'success' : 'error',
+        result.windowsCommand || result.details || result.message.slice(0, 80),
+        parsed.category
+      );
+
+      return result;
     } catch (err: any) {
+      const errText = err.message || 'Noma\'lum xato';
+      LogService.addLog(rawInput, 'error', errText, parsed.category);
       return {
         success: false,
-        message: `❌ Buyruqni bajarishda xatolik: ${err.message || 'Noma\'lum xato'}`,
+        message: `❌ Buyruqni bajarishda xatolik: ${errText}`,
       };
     }
   }

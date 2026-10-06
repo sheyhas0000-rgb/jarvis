@@ -10,6 +10,7 @@ import { Updates } from './components/Updates';
 import { ProfileModal } from './components/ProfileModal';
 import { PermissionModal } from './components/PermissionModal';
 import { WindowsAppModal } from './components/WindowsAppModal';
+import { LogPanel } from './components/LogPanel';
 import { 
   SidebarTab, 
   ChatSession, 
@@ -26,8 +27,10 @@ import { ChatService } from './services/chatService';
 import { PluginService } from './services/pluginService';
 import { ProjectService } from './services/projectService';
 import { CommandService } from './services/commandService';
+import { LocalAgentBridge } from './services/localAgentBridge';
+import { TTSService } from './services/ttsService';
 import { normalizeLang, t } from './utils/i18n';
-import { Menu, Globe, LayoutGrid, ShieldCheck } from 'lucide-react';
+import { Menu, Globe, LayoutGrid, ShieldCheck, Moon, Sun, Terminal, Volume2, VolumeX } from 'lucide-react';
 
 export default function App() {
   // Navigation
@@ -35,8 +38,29 @@ export default function App() {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
 
+  // Command Execution Log Panel (v1.5)
+  const [isLogPanelOpen, setIsLogPanelOpen] = useState(false);
+
+  // Windows Agent Connection Status
+  const [isAgentConnected, setIsAgentConnected] = useState(false);
+
   // Active Windows Application Modal (11 applications)
   const [activeAppWindow, setActiveAppWindow] = useState<WindowsAppId | null>(null);
+
+  // Poll local agent status
+  useEffect(() => {
+    let isMounted = true;
+    const check = async () => {
+      const ok = await LocalAgentBridge.checkStatus();
+      if (isMounted) setIsAgentConnected(ok);
+    };
+    check();
+    const interval = setInterval(check, 3500);
+    return () => {
+      isMounted = false;
+      clearInterval(interval);
+    };
+  }, []);
 
   // Core Data State
   const [settings, setSettings] = useState<AppSettings>(() => StorageService.getSettings());
@@ -59,11 +83,11 @@ export default function App() {
   useEffect(() => {
     document.documentElement.lang = activeLanguage;
     if (activeLanguage === 'en') {
-      document.title = 'JARVIS Windows Assistant v1.4';
+      document.title = 'JARVIS Windows Assistant v1.5';
     } else if (activeLanguage === 'ru') {
-      document.title = 'JARVIS Windows Ассистент v1.4';
+      document.title = 'JARVIS Windows Ассистент v1.5';
     } else {
-      document.title = 'JARVIS Windows Yordamchisi v1.4';
+      document.title = 'JARVIS Windows Yordamchisi v1.5';
     }
   }, [activeLanguage]);
 
@@ -146,9 +170,14 @@ export default function App() {
       // 2. Execute via Local Command Service passing the active language
       const result = await CommandService.execute(text, forceConfirmed, activeLanguage);
 
-      // 3. If an application was targeted, automatically open the simulated window!
+      // 3. If an application was targeted, automatically open or close the simulated window!
       if (result.openedApp) {
         setActiveAppWindow(result.openedApp);
+      }
+      if (result.closedApp) {
+        if (activeAppWindow === result.closedApp) {
+          setActiveAppWindow(null);
+        }
       }
 
       // 4. Check if sensitive action requires confirmation
@@ -200,6 +229,11 @@ export default function App() {
 
       ChatService.addMessage(activeChat.id, jarvisMsg);
       refreshState();
+
+      // Text-to-Speech (TTS) voice playback if enabled
+      if (settings.ttsEnabled) {
+        TTSService.speak(result.speechText || result.message, activeLanguage, settings.ttsEnabled);
+      }
 
       // Sound feedback if enabled
       if (settings.soundEnabled) {
@@ -264,7 +298,9 @@ export default function App() {
   };
 
   return (
-    <div className="flex h-screen w-screen bg-[#05080e] text-zinc-100 font-sans overflow-hidden select-none">
+    <div className={`flex h-screen w-screen font-sans overflow-hidden select-none transition-colors duration-200 ${
+      settings.theme === 'light' ? 'bg-slate-100 text-slate-800' : 'bg-[#05080e] text-zinc-100'
+    }`}>
       {/* Sidebar */}
       <Sidebar
         currentTab={currentTab}
@@ -277,6 +313,7 @@ export default function App() {
         onSelectChat={handleSelectChat}
         agentName={settings.agentName}
         language={activeLanguage}
+        theme={settings.theme}
         isMobileOpen={isMobileSidebarOpen}
         onCloseMobile={() => setIsMobileSidebarOpen(false)}
       />
@@ -284,7 +321,11 @@ export default function App() {
       {/* Main Content Area */}
       <div className="flex-1 flex flex-col h-full min-w-0 relative">
         {/* Top Bar for Desktop and Mobile (Includes Hamburger & Language Switcher) */}
-        <div className="h-12 px-4 bg-[#080d17] border-b border-cyan-900/30 flex items-center justify-between z-20 shrink-0 select-none">
+        <div className={`h-12 px-4 border-b flex items-center justify-between z-20 shrink-0 select-none transition-colors ${
+          settings.theme === 'light' 
+            ? 'bg-white border-slate-200 text-slate-800' 
+            : 'bg-[#080d17] border-cyan-900/30 text-zinc-100'
+        }`}>
           <div className="flex items-center gap-2">
             <button
               onClick={() => setIsMobileSidebarOpen(true)}
@@ -297,13 +338,46 @@ export default function App() {
               <span className="w-2 h-2 rounded-full bg-cyan-400 animate-pulse" />
               {settings.agentName}
               <span className="text-[10px] uppercase px-1.5 py-0.5 rounded bg-cyan-950/80 border border-cyan-500/30 text-cyan-400 font-mono">
-                v1.4
+                v1.5
               </span>
             </span>
           </div>
 
-          {/* Center / Right: Quick Language Switcher & App Launcher trigger */}
+          {/* Center / Right: Status + Theme Toggle + Logs + Language Switcher + App Launcher */}
           <div className="flex items-center gap-2">
+            {/* Status Badge */}
+            <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-xl text-[11px] font-mono border bg-cyan-950/40 border-cyan-800/40 text-cyan-300">
+              <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+              <span className="hidden sm:inline">Windows Local</span>
+            </div>
+
+            {/* Theme Toggle (Dark / Light) */}
+            <button
+              onClick={() => handleUpdateSettings({ ...settings, theme: settings.theme === 'light' ? 'dark' : 'light' })}
+              className={`p-1.5 rounded-xl border text-xs transition-all ${
+                settings.theme === 'light'
+                  ? 'bg-slate-100 border-slate-300 text-amber-600 hover:bg-slate-200'
+                  : 'bg-black/60 border-cyan-900/40 text-cyan-300 hover:bg-cyan-950/60'
+              }`}
+              title={strings.header.themeToggle}
+            >
+              {settings.theme === 'light' ? <Sun className="w-3.5 h-3.5" /> : <Moon className="w-3.5 h-3.5" />}
+            </button>
+
+            {/* Logs Panel Button */}
+            <button
+              onClick={() => setIsLogPanelOpen(prev => !prev)}
+              className={`px-2 py-1 rounded-xl border text-xs font-mono transition-all flex items-center gap-1 ${
+                isLogPanelOpen
+                  ? 'bg-cyan-500/25 border-cyan-400 text-cyan-300'
+                  : (settings.theme === 'light' ? 'bg-slate-100 border-slate-300 text-slate-700 hover:bg-slate-200' : 'bg-black/60 border-cyan-900/40 text-zinc-400 hover:text-cyan-300')
+              }`}
+              title={strings.header.logsPanel}
+            >
+              <Terminal className="w-3.5 h-3.5 text-cyan-400" />
+              <span className="hidden sm:inline">Logs</span>
+            </button>
+
             {/* 1-Click Language Switcher (UZ / EN / RU) */}
             <div className="flex items-center p-0.5 bg-black/60 border border-cyan-900/40 rounded-xl">
               <button
@@ -364,7 +438,11 @@ export default function App() {
               agentName={settings.agentName}
               isProcessing={isProcessing}
               language={activeLanguage}
+              ttsEnabled={settings.ttsEnabled}
+              onToggleTTS={() => handleUpdateSettings({ ...settings, ttsEnabled: !settings.ttsEnabled })}
+              theme={settings.theme}
               onOpenApp={(appId) => setActiveAppWindow(appId)}
+              onOpenLogPanel={() => setIsLogPanelOpen(true)}
             />
           )}
 
@@ -373,6 +451,7 @@ export default function App() {
               settings={settings}
               onUpdateSettings={handleUpdateSettings}
               onClearAllData={handleClearAllData}
+              theme={settings.theme}
             />
           )}
 
@@ -445,6 +524,13 @@ export default function App() {
           language={activeLanguage}
         />
       )}
+
+      {/* Command Execution Logs Panel (v1.5) */}
+      <LogPanel
+        isOpen={isLogPanelOpen}
+        onClose={() => setIsLogPanelOpen(false)}
+        language={activeLanguage}
+      />
     </div>
   );
 }

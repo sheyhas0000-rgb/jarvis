@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { 
   Settings as SettingsIcon, 
   Shield, 
@@ -7,27 +7,40 @@ import {
   Search,
   Sliders,
   ShieldCheck,
-  Globe
+  Globe,
+  Moon,
+  Sun,
+  Volume2,
+  Download,
+  Upload,
+  Check
 } from 'lucide-react';
 import { AppSettings, PermissionType, SupportedLanguage } from '../types';
 import { ALL_COMMANDS_META } from '../commands/commandRegistry';
+import { StorageService } from '../services/storageService';
 import { t, normalizeLang } from '../utils/i18n';
 
 interface SettingsProps {
   settings: AppSettings;
   onUpdateSettings: (newSettings: AppSettings) => void;
   onClearAllData: () => void;
+  theme?: 'dark' | 'light';
 }
 
 export const Settings: React.FC<SettingsProps> = ({
   settings,
   onUpdateSettings,
   onClearAllData,
+  theme = 'dark',
 }) => {
   const [activeTab, setActiveTab] = useState<'general' | 'permissions' | 'commands' | 'storage'>('general');
   const [commandSearch, setCommandSearch] = useState('');
+  const [jsonExportSuccess, setJsonExportSuccess] = useState(false);
+  const [jsonImportSuccess, setJsonImportSuccess] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const lang = normalizeLang(settings.language);
   const strings = t(lang);
+  const isLight = theme === 'light';
 
   const handlePermissionToggle = (type: PermissionType, field: 'enabled' | 'requireConfirmation') => {
     const updated = {
@@ -144,12 +157,60 @@ export const Settings: React.FC<SettingsProps> = ({
                 })}
               </div>
             </div>
+
+            {/* Theme Selector (Dark / Light) */}
+            <div>
+              <label className="block text-xs font-medium text-zinc-400 mb-1.5">{strings.settings.theme}</label>
+              <div className="flex gap-2.5 max-w-xs">
+                <button
+                  type="button"
+                  onClick={() => onUpdateSettings({ ...settings, theme: 'dark' })}
+                  className={`flex-1 p-2.5 rounded-xl border text-xs font-semibold flex items-center justify-center gap-2 transition-all ${
+                    settings.theme === 'dark'
+                      ? 'bg-cyan-500/20 border-cyan-400 text-cyan-300 shadow-[0_0_10px_rgba(0,240,255,0.2)]'
+                      : 'bg-black/40 border-zinc-800 text-zinc-400 hover:text-zinc-200'
+                  }`}
+                >
+                  <Moon className="w-4 h-4 text-cyan-400" />
+                  <span>Dark</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => onUpdateSettings({ ...settings, theme: 'light' })}
+                  className={`flex-1 p-2.5 rounded-xl border text-xs font-semibold flex items-center justify-center gap-2 transition-all ${
+                    settings.theme === 'light'
+                      ? 'bg-cyan-500/20 border-cyan-400 text-cyan-300 shadow-[0_0_10px_rgba(0,240,255,0.2)]'
+                      : 'bg-black/40 border-zinc-800 text-zinc-400 hover:text-zinc-200'
+                  }`}
+                >
+                  <Sun className="w-4 h-4 text-amber-400" />
+                  <span>Light</span>
+                </button>
+              </div>
+            </div>
           </div>
 
           <div className="p-5 rounded-2xl bg-[#0c121e] border border-cyan-900/30 space-y-4">
             <h3 className="text-sm font-bold text-zinc-200">
               {lang === 'en' ? 'UI & Audio Feedback' : lang === 'ru' ? 'Интерфейс и Звук' : 'Interfeys va Ovoz'}
             </h3>
+
+            {/* TTS Text-to-Speech Toggle */}
+            <div className="flex items-center justify-between py-2 border-b border-zinc-800/60">
+              <div>
+                <span className="text-sm font-medium text-zinc-200 block flex items-center gap-2">
+                  <Volume2 className="w-4 h-4 text-cyan-400" />
+                  {strings.settings.tts}
+                </span>
+                <span className="text-xs text-zinc-500">{strings.settings.ttsDesc}</span>
+              </div>
+              <input
+                type="checkbox"
+                checked={settings.ttsEnabled}
+                onChange={() => onUpdateSettings({ ...settings, ttsEnabled: !settings.ttsEnabled })}
+                className="w-4 h-4 accent-cyan-400 cursor-pointer"
+              />
+            </div>
 
             <div className="flex items-center justify-between py-2 border-b border-zinc-800/60">
               <div>
@@ -304,6 +365,83 @@ export const Settings: React.FC<SettingsProps> = ({
             <p className="text-xs text-zinc-400">
               {strings.settings.storageDesc}
             </p>
+
+            {/* settings.json Export & Import */}
+            <div className="p-4 rounded-xl bg-black/40 border border-cyan-900/40 space-y-3">
+              <h4 className="text-xs font-bold text-cyan-300 font-mono flex items-center gap-2">
+                <Download className="w-4 h-4 text-cyan-400" />
+                {lang === 'en' ? 'LOCAL CONFIGURATION FILE (settings.json)' : lang === 'ru' ? 'ЛОКАЛЬНЫЙ ФАЙЛ НАСТРОЕК (settings.json)' : 'LOKAL SOZLAMALAR FAYLI (settings.json)'}
+              </h4>
+              <p className="text-xs text-zinc-400">
+                {lang === 'en' 
+                  ? 'All settings (selected language, speech voice on/off, agent name, theme, permissions) are preserved locally and restored automatically whenever you open JARVIS. You can also export or import your settings.json file directly.'
+                  : lang === 'ru'
+                  ? 'Все настройки (выбранный язык, озвучка вкл/выкл, имя ассистента, тема, разрешения) сохраняются локально и восстанавливаются при каждом открытии JARVIS. Вы также можете экспортировать или импортировать файл settings.json.'
+                  : 'Barcha sozlamalar (tanlangan til, ovozli javob yoqilgan/o‘chirilganligi, agent nomi, mavzu, ruxsatlar) lokal saqlanadi va dastur qayta ochilganda avtomatik tiklanadi. Shuningdek settings.json faylini eksport yoki import qilishingiz mumkin.'}
+              </p>
+
+              <div className="flex flex-wrap items-center gap-3 pt-2">
+                {/* Export Button */}
+                <button
+                  type="button"
+                  onClick={() => {
+                    const jsonStr = StorageService.exportSettingsJson();
+                    const blob = new Blob([jsonStr], { type: 'application/json' });
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = 'settings.json';
+                    document.body.appendChild(a);
+                    a.click();
+                    document.body.removeChild(a);
+                    URL.revokeObjectURL(url);
+                    setJsonExportSuccess(true);
+                    setTimeout(() => setJsonExportSuccess(false), 3000);
+                  }}
+                  className="px-3.5 py-2 rounded-xl border border-cyan-500/40 bg-cyan-950/60 hover:bg-cyan-900/60 text-cyan-300 text-xs font-medium flex items-center gap-2 transition-all active:scale-95"
+                >
+                  {jsonExportSuccess ? <Check className="w-4 h-4 text-emerald-400" /> : <Download className="w-4 h-4" />}
+                  <span>{jsonExportSuccess ? 'settings.json yuklandi!' : strings.settings.exportSettings}</span>
+                </button>
+
+                {/* Import Button */}
+                <input
+                  type="file"
+                  ref={fileInputRef}
+                  accept=".json,application/json"
+                  className="hidden"
+                  onChange={e => {
+                    const file = e.target.files?.[0];
+                    if (file) {
+                      const reader = new FileReader();
+                      reader.onload = (event) => {
+                        const content = event.target?.result as string;
+                        if (content) {
+                          const imported = StorageService.importSettingsJson(content);
+                          if (imported) {
+                            onUpdateSettings(imported);
+                            setJsonImportSuccess(true);
+                            setTimeout(() => setJsonImportSuccess(false), 3000);
+                          } else {
+                            alert('settings.json formati noto‘g‘ri!');
+                          }
+                        }
+                      };
+                      reader.readAsText(file);
+                    }
+                  }}
+                />
+
+                <button
+                  type="button"
+                  onClick={() => fileInputRef.current?.click()}
+                  className="px-3.5 py-2 rounded-xl border border-zinc-700 bg-zinc-900/80 hover:bg-zinc-800 text-zinc-200 text-xs font-medium flex items-center gap-2 transition-all active:scale-95"
+                >
+                  {jsonImportSuccess ? <Check className="w-4 h-4 text-emerald-400" /> : <Upload className="w-4 h-4" />}
+                  <span>{jsonImportSuccess ? 'settings.json tiklandi!' : strings.settings.importSettings}</span>
+                </button>
+              </div>
+            </div>
 
             <div className="pt-4 space-y-3">
               <button

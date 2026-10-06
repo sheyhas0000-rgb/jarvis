@@ -7,6 +7,7 @@ const STORAGE_KEYS = {
   PLUGINS: 'jarvis_plugins_v1',
   PROJECTS: 'jarvis_projects_v1',
   FILES: 'jarvis_virtual_fs_v1',
+  COMMAND_HISTORY: 'jarvis_command_history_v1',
 };
 
 export const DEFAULT_PERMISSIONS: PermissionSettings = {
@@ -60,6 +61,7 @@ export const DEFAULT_SETTINGS: AppSettings = {
   theme: 'dark',
   animations: true,
   soundEnabled: true,
+  ttsEnabled: true,
   showTimestamps: true,
   notifications: true,
   defaultLocation: 'Desktop',
@@ -283,6 +285,58 @@ export class StorageService {
     } catch (e) {
       console.warn('StorageService.saveSettings error:', e);
     }
+  }
+
+  static exportSettingsJson(): string {
+    const settings = this.getSettings();
+    return JSON.stringify(settings, null, 2);
+  }
+
+  static importSettingsJson(jsonStr: string): AppSettings | null {
+    try {
+      const parsed = JSON.parse(jsonStr);
+      if (typeof parsed === 'object' && parsed !== null) {
+        const merged: AppSettings = { ...DEFAULT_SETTINGS, ...parsed };
+        this.saveSettings(merged);
+        return merged;
+      }
+    } catch (e) {
+      console.warn('StorageService.importSettingsJson error:', e);
+    }
+    return null;
+  }
+
+  // --- COMMAND HISTORY (Last 20 commands) ---
+  static getCommandHistory(): string[] {
+    try {
+      const data = localStorage.getItem(STORAGE_KEYS.COMMAND_HISTORY);
+      if (data) {
+        const parsed = JSON.parse(data);
+        if (Array.isArray(parsed)) return parsed.slice(0, 20);
+      }
+    } catch (e) {
+      console.warn('StorageService.getCommandHistory error:', e);
+    }
+    return [];
+  }
+
+  static addCommandToHistory(command: string): string[] {
+    const cmd = command.trim();
+    if (!cmd) return this.getCommandHistory();
+
+    const existing = this.getCommandHistory().filter(c => c.toLowerCase() !== cmd.toLowerCase());
+    const updated = [cmd, ...existing].slice(0, 20);
+
+    try {
+      localStorage.setItem(STORAGE_KEYS.COMMAND_HISTORY, JSON.stringify(updated));
+    } catch (e) {
+      console.warn('StorageService.addCommandToHistory error:', e);
+    }
+    return updated;
+  }
+
+  static clearCommandHistory(): void {
+    localStorage.removeItem(STORAGE_KEYS.COMMAND_HISTORY);
   }
 
   // --- PLUGINS ---

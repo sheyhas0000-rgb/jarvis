@@ -328,8 +328,85 @@ function handleExecute(actionData) {
       });
       return {
         success: true,
-        message: `✅ ${actionData.title || 'Sayt'} Mac/tizim brauzerida ochildi: ${targetUrl}`,
+        message: `✅ ${actionData.title || 'Sayt'} brauzerda ochildi: ${targetUrl}`,
         url: targetUrl,
+      };
+    }
+
+    case 'launch_app': {
+      const app = (actionData.app || '').toLowerCase();
+      const platform = os.platform();
+      let winCmd = '';
+
+      switch (app) {
+        case 'calculator':
+        case 'calc':
+          winCmd = platform === 'win32' ? 'start calc.exe' : (platform === 'darwin' ? 'open -a Calculator' : 'gnome-calculator &');
+          break;
+        case 'clock':
+          winCmd = platform === 'win32' ? 'start ms-clock:' : (platform === 'darwin' ? 'open -a Clock' : 'gnome-clocks &');
+          break;
+        case 'cmd':
+        case 'terminal':
+          winCmd = platform === 'win32' ? 'start cmd.exe /k "title Windows Command Prompt (CMD)"' : (platform === 'darwin' ? 'open -a Terminal' : 'x-terminal-emulator &');
+          break;
+        case 'notepad':
+          winCmd = platform === 'win32' ? 'start notepad.exe' : (platform === 'darwin' ? 'open -a TextEdit' : 'gedit &');
+          break;
+        case 'paint':
+          winCmd = platform === 'win32' ? 'start mspaint.exe' : (platform === 'darwin' ? 'open -a Preview' : 'gimp &');
+          break;
+        case 'explorer':
+        case 'file explorer':
+          winCmd = platform === 'win32' ? 'start explorer.exe' : (platform === 'darwin' ? 'open .' : 'xdg-open .');
+          break;
+        case 'taskmgr':
+        case 'task manager':
+          winCmd = platform === 'win32' ? 'start taskmgr.exe' : (platform === 'darwin' ? 'open -a "Activity Monitor"' : 'gnome-system-monitor &');
+          break;
+        case 'settings':
+          winCmd = platform === 'win32' ? 'start ms-settings:' : (platform === 'darwin' ? 'open "x-apple.systempreferences:"' : 'gnome-control-center &');
+          break;
+        case 'browser':
+        case 'chrome':
+          winCmd = platform === 'win32' ? 'start https://www.google.com' : (platform === 'darwin' ? 'open https://www.google.com' : 'xdg-open https://www.google.com');
+          break;
+        case 'control':
+        case 'control panel':
+          winCmd = platform === 'win32' ? 'start control.exe' : (platform === 'darwin' ? 'open "x-apple.systempreferences:"' : 'gnome-control-center &');
+          break;
+        case 'calendar':
+          winCmd = platform === 'win32' ? 'start outlookcal:' : (platform === 'darwin' ? 'open -a Calendar' : 'gnome-calendar &');
+          break;
+        default:
+          winCmd = platform === 'win32' ? `start ${app}` : `open ${app}`;
+      }
+
+      exec(winCmd, (err) => {
+        if (err) console.error('[JARVIS Agent] Dasturni ochishda xato:', err);
+      });
+
+      return {
+        success: true,
+        message: `🚀 Haqiqiy Windows dasturi ishga tushirildi: ${app}`,
+        windowsCommand: winCmd,
+        isRealWindows: true,
+      };
+    }
+
+    case 'run_windows_command': {
+      const cmd = actionData.command;
+      if (!cmd) throw new Error("Buyruq ko'rsatilmadi.");
+      
+      exec(cmd, (err) => {
+        if (err) console.error('[JARVIS Agent] Buyruq xatosi:', err);
+      });
+
+      return {
+        success: true,
+        message: `⚡ Windows tizim buyrug'i bajarildi: ${cmd}`,
+        windowsCommand: cmd,
+        isRealWindows: true,
       };
     }
 

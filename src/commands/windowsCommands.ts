@@ -1,4 +1,5 @@
 import { CommandExecutionResult, LocalCommandDefinition, ApprovedLocation } from '../types';
+import { LocalAgentBridge } from '../services/localAgentBridge';
 
 export const WINDOWS_COMMANDS_META: LocalCommandDefinition[] = [
   {
@@ -102,29 +103,35 @@ export const WINDOWS_COMMANDS_META: LocalCommandDefinition[] = [
 export async function executeWindowsCommand(commandId: string, args: Record<string, any> = {}): Promise<CommandExecutionResult> {
   switch (commandId) {
     case 'win_lock': {
+      await LocalAgentBridge.executeCommand('rundll32.exe user32.dll,LockWorkStation');
       return {
         success: true,
         message: '🔒 Bajarildi, ser! Kompyuter ekrani bloklandi (Workstation Locked).',
         details: 'Windows API: LockWorkStation() chaqirildi.\nKompyuter xavfsiz blokirovka holatiga o‘tdi.',
         windowsCommand: 'rundll32.exe user32.dll,LockWorkStation',
+        isRealWindows: true,
       };
     }
 
     case 'win_shutdown': {
+      await LocalAgentBridge.executeCommand('shutdown /s /t 0');
       return {
         success: true,
         message: '🛑 Bajarildi, ser! Windows tizimini o‘chirish jarayoni boshlandi.',
         details: 'Buyruq: shutdown /s /t 0\nBarcha jarayonlar xavfsiz yakunlanmoqda.',
         windowsCommand: 'shutdown /s /t 0',
+        isRealWindows: true,
       };
     }
 
     case 'win_restart': {
+      await LocalAgentBridge.executeCommand('shutdown /r /t 0');
       return {
         success: true,
         message: '🔄 Bajarildi, ser! Windows tizimi qayta ishga tushirilmoqda.',
         details: 'Buyruq: shutdown /r /t 0\nOperatsion tizim qayta yuklanmoqda.',
         windowsCommand: 'shutdown /r /t 0',
+        isRealWindows: true,
       };
     }
 
@@ -139,11 +146,13 @@ export async function executeWindowsCommand(commandId: string, args: Record<stri
       };
 
       const path = folderPaths[location] || folderPaths.Downloads;
+      await LocalAgentBridge.executeCommand(`explorer.exe "${path}"`);
       return {
         success: true,
         message: `📂 Bajarildi, ser! Windows Explorer orqali "${location}" papkasi ochildi.`,
         details: `Yo‘l: ${path}\nStatus: Explorer darchasi muvaffaqiyatli faollashtirildi.`,
         windowsCommand: `explorer.exe "${path}"`,
+        isRealWindows: true,
       };
     }
 

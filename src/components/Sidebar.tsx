@@ -27,6 +27,7 @@ interface SidebarProps {
   onSelectChat: (id: string) => void;
   agentName: string;
   language: SupportedLanguage;
+  theme?: 'dark' | 'light';
   isMobileOpen?: boolean;
   onCloseMobile?: () => void;
 }
@@ -42,10 +43,12 @@ export const Sidebar: React.FC<SidebarProps> = ({
   onSelectChat,
   agentName,
   language,
+  theme = 'dark',
   isMobileOpen = false,
   onCloseMobile,
 }) => {
   const strings = t(language);
+  const isLight = theme === 'light';
 
   const navItems: { id: SidebarTab; label: string; icon: React.ReactNode; badge?: string }[] = [
     { id: 'settings', label: strings.nav.settings, icon: <SettingsIcon className="w-5 h-5" /> },
@@ -56,7 +59,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
   ];
 
   const bottomItems: { id: SidebarTab; label: string; icon: React.ReactNode; badge?: string }[] = [
-    { id: 'updates', label: strings.nav.updates, icon: <Bell className="w-5 h-5" />, badge: 'v1.4' },
+    { id: 'updates', label: strings.nav.updates, icon: <Bell className="w-5 h-5" />, badge: 'v1.5' },
     { id: 'profile', label: strings.nav.profile, icon: <User className="w-5 h-5" /> },
   ];
 
@@ -91,7 +94,8 @@ export const Sidebar: React.FC<SidebarProps> = ({
         className={`
           fixed md:static inset-y-0 left-0 z-50
           flex flex-col justify-between
-          bg-[#0a0f18]/95 backdrop-blur-xl border-r border-cyan-900/30
+          ${isLight ? 'bg-white/95 border-r border-slate-200 text-slate-800' : 'bg-[#0a0f18]/95 border-r border-cyan-900/30 text-zinc-100'}
+          backdrop-blur-xl
           transition-all duration-300 ease-in-out
           ${isMobileOpen ? 'translate-x-0 w-72' : '-translate-x-full md:translate-x-0'}
           ${collapsed ? 'md:w-20' : 'md:w-64'}
@@ -101,7 +105,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
         {/* Top Section */}
         <div className="flex flex-col h-full overflow-hidden">
           {/* Header */}
-          <div className="h-16 flex items-center justify-between px-4 border-b border-cyan-900/20">
+          <div className={`h-16 flex items-center justify-between px-4 border-b ${isLight ? 'border-slate-200' : 'border-cyan-900/20'}`}>
             <div 
               onClick={() => handleNavClick('chat')}
               className="flex items-center gap-3 cursor-pointer group overflow-hidden"
@@ -112,14 +116,14 @@ export const Sidebar: React.FC<SidebarProps> = ({
               </div>
               {!collapsed && (
                 <div className="flex flex-col truncate">
-                  <span className="font-bold tracking-wider text-cyan-300 text-sm flex items-center gap-1.5">
+                  <span className={`font-bold tracking-wider text-sm flex items-center gap-1.5 ${isLight ? 'text-slate-900' : 'text-cyan-300'}`}>
                     {agentName}
                     <span className="text-[10px] uppercase px-1.5 py-0.5 rounded bg-cyan-950/80 border border-cyan-500/30 text-cyan-400 font-mono">
-                      v1.4 LOCAL
+                      v1.5 LOCAL
                     </span>
                   </span>
-                  <span className="text-[11px] text-zinc-400 truncate flex items-center gap-1">
-                    <ShieldCheck className="w-3 h-3 text-emerald-400" />
+                  <span className={`text-[11px] truncate flex items-center gap-1 ${isLight ? 'text-slate-500' : 'text-zinc-400'}`}>
+                    <ShieldCheck className="w-3 h-3 text-emerald-500" />
                     {strings.nav.offlineMode}
                   </span>
                 </div>

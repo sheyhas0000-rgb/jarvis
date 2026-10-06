@@ -102,10 +102,21 @@ export interface AppSettings {
   theme: 'dark' | 'light';
   animations: boolean;
   soundEnabled: boolean;
+  ttsEnabled: boolean;
   showTimestamps: boolean;
   notifications: boolean;
   defaultLocation: ApprovedLocation;
   permissions: PermissionSettings;
+}
+
+export interface CommandLog {
+  id: string;
+  timestamp: number;
+  timeFormatted: string;
+  command: string;
+  status: 'success' | 'error' | 'info';
+  details?: string;
+  category?: string;
 }
 
 export interface SafeAction {
@@ -187,6 +198,8 @@ export interface CommandExecutionResult {
   };
   speechText?: string;
   openedApp?: WindowsAppId;
+  closedApp?: WindowsAppId;
+  isRealWindows?: boolean;
   requiresConfirmation?: boolean;
   confirmationMessage?: string;
   permissionType?: PermissionType;
