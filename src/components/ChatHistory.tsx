@@ -21,6 +21,8 @@ interface ChatHistoryProps {
   onRenameChat: (id: string, newTitle: string) => void;
   onDeleteChat: (id: string) => void;
   onArchiveChat: (id: string) => void;
+  theme?: 'dark' | 'light';
+  osTheme?: import('../types').ActiveOSType;
 }
 
 export const ChatHistory: React.FC<ChatHistoryProps> = ({
@@ -31,7 +33,10 @@ export const ChatHistory: React.FC<ChatHistoryProps> = ({
   onRenameChat,
   onDeleteChat,
   onArchiveChat,
+  theme = 'dark',
+  osTheme = 'windows',
 }) => {
+  const isLight = theme === 'light';
   const [searchTerm, setSearchTerm] = useState('');
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editTitle, setEditTitle] = useState('');

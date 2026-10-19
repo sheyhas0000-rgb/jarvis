@@ -95,6 +95,13 @@ export interface I18nDict {
     theme: string;
     themeDark: string;
     themeLight: string;
+    osTheme: string;
+    osThemeDesc: string;
+    osThemeAuto: string;
+    osThemeMac: string;
+    osThemeWindows: string;
+    osThemeAndroid: string;
+    osDetectedLabel: string;
     animations: string;
     animationsDesc: string;
     sound: string;
@@ -246,6 +253,13 @@ export const TRANSLATIONS: Record<SupportedLanguage, I18nDict> = {
       theme: 'Mavzu (Theme)',
       themeDark: 'Qorong‘i (Dark HUD)',
       themeLight: 'Yorug‘ (Light Mode)',
+      osTheme: 'OS Dizayni (Theme Style)',
+      osThemeDesc: 'Qurilma va operatsion tizim uslubi (macOS Liquid Glass, Windows 12 Fluent, Android 16 Material You)',
+      osThemeAuto: 'Auto (Avtomatik)',
+      osThemeMac: 'macOS 27 (Liquid Glass)',
+      osThemeWindows: 'Windows 12 (Fluent)',
+      osThemeAndroid: 'Android 16 (Material You)',
+      osDetectedLabel: 'Aniqlangan OS:',
       animations: 'Silliq animatsiyalar',
       animationsDesc: 'O‘tish va UI vizual effektlari',
       sound: 'Tovush effektlari',
@@ -396,6 +410,13 @@ export const TRANSLATIONS: Record<SupportedLanguage, I18nDict> = {
       theme: 'Theme',
       themeDark: 'Dark HUD',
       themeLight: 'Light Mode',
+      osTheme: 'OS Theme Style',
+      osThemeDesc: 'Operating system design language (macOS Liquid Glass, Windows 12 Fluent, Android 16 Material You)',
+      osThemeAuto: 'Auto (System)',
+      osThemeMac: 'macOS 27 (Liquid Glass)',
+      osThemeWindows: 'Windows 12 (Fluent)',
+      osThemeAndroid: 'Android 16 (Material You)',
+      osDetectedLabel: 'Detected OS:',
       animations: 'Smooth Animations',
       animationsDesc: 'UI transitions and visual effects',
       sound: 'Sound Effects',
@@ -546,6 +567,13 @@ export const TRANSLATIONS: Record<SupportedLanguage, I18nDict> = {
       theme: 'Тема (Theme)',
       themeDark: 'Темная (Dark HUD)',
       themeLight: 'Светлая (Light Mode)',
+      osTheme: 'Стиль ОС (OS Theme)',
+      osThemeDesc: 'Дизайн в стиле операционной системы (macOS Liquid Glass, Windows 12 Fluent, Android 16 Material You)',
+      osThemeAuto: 'Auto (Системная)',
+      osThemeMac: 'macOS 27 (Liquid Glass)',
+      osThemeWindows: 'Windows 12 (Fluent)',
+      osThemeAndroid: 'Android 16 (Material You)',
+      osDetectedLabel: 'Определена ОС:',
       animations: 'Плавная анимация',
       animationsDesc: 'Визуальные эффекты переходов интерфейса',
       sound: 'Звуковые эффекты',

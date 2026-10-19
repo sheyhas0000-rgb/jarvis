@@ -18,12 +18,17 @@ import { LocalPlugin } from '../types';
 interface PluginsProps {
   plugins: LocalPlugin[];
   onTogglePlugin: (id: string) => void;
+  theme?: 'dark' | 'light';
+  osTheme?: import('../types').ActiveOSType;
 }
 
 export const Plugins: React.FC<PluginsProps> = ({
   plugins,
   onTogglePlugin,
+  theme = 'dark',
+  osTheme = 'windows',
 }) => {
+  const isLight = theme === 'light';
   const getIcon = (iconName: string) => {
     switch (iconName) {
       case 'Globe': return <Globe className="w-6 h-6" />;
@@ -152,7 +157,7 @@ export const Plugins: React.FC<PluginsProps> = ({
           <div className="p-3 rounded-xl bg-black/40 border border-cyan-900/30">
             <span className="font-semibold text-cyan-300 block mb-1">📁 File Plugin</span>
             <span className="text-zinc-400">
-              Kompyuterning Desktop, Downloads, Documents papkalarida matnli fayllar (.txt, .bat) yaratish, mavjud fayllarni ochib o‘qish yoki xavfsiz o‘chirish uchun xizmat qiladi.
+              Kompyuterning Desktop, Downloads, Documents papkalarida xavfsiz matnli fayllar (.txt, .json, .log) yaratish, mavjud fayllarni ochib o‘qish yoki xavfsiz o‘chirish uchun xizmat qiladi.
             </span>
           </div>
 

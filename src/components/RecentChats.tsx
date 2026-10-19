@@ -8,6 +8,8 @@ interface RecentChatsProps {
   onSelectChat: (id: string) => void;
   onNewChat: () => void;
   onViewAll: () => void;
+  theme?: 'dark' | 'light';
+  osTheme?: import('../types').ActiveOSType;
 }
 
 export const RecentChats: React.FC<RecentChatsProps> = ({
@@ -16,7 +18,10 @@ export const RecentChats: React.FC<RecentChatsProps> = ({
   onSelectChat,
   onNewChat,
   onViewAll,
+  theme = 'dark',
+  osTheme = 'windows',
 }) => {
+  const isLight = theme === 'light';
   return (
     <div className="h-full flex flex-col p-6 max-w-3xl mx-auto overflow-y-auto">
       {/* Header */}

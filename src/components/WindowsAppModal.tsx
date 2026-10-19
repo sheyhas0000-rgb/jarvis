@@ -32,16 +32,21 @@ interface WindowsAppModalProps {
   appId: WindowsAppId;
   onClose: () => void;
   language: SupportedLanguage;
+  osTheme?: import('../types').ActiveOSType;
+  theme?: 'dark' | 'light';
 }
 
 export const WindowsAppModal: React.FC<WindowsAppModalProps> = ({
   appId,
   onClose,
   language,
+  osTheme = 'windows',
+  theme = 'dark',
 }) => {
   const [isMaximized, setIsMaximized] = useState(false);
   const [copiedCli, setCopiedCli] = useState(false);
   const strings = t(language);
+  const isLight = theme === 'light';
 
   // App Metadata & Local Windows details
   const getAppMeta = () => {
@@ -163,68 +168,134 @@ export const WindowsAppModal: React.FC<WindowsAppModalProps> = ({
   }, [onClose]);
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 md:p-6 bg-black/75 backdrop-blur-sm animate-fadeIn select-none">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 md:p-6 bg-black/75 backdrop-blur-md animate-fadeIn select-none">
       <div 
         className={`
-          flex flex-col bg-[#0d1424] border border-cyan-500/30 rounded-2xl shadow-[0_15px_60px_rgba(0,0,0,0.8),0_0_35px_rgba(0,240,255,0.15)]
-          overflow-hidden transition-all duration-200
-          ${isMaximized ? 'w-full h-full rounded-none' : 'w-full max-w-4xl max-h-[90vh] h-[640px]'}
+          flex flex-col overflow-hidden transition-all duration-300
+          ${isMaximized ? 'w-full h-full rounded-none' : (osTheme === 'android' ? 'w-full max-w-4xl max-h-[90vh] h-[640px] rounded-[28px]' : 'w-full max-w-4xl max-h-[90vh] h-[640px] rounded-2xl')}
+          ${osTheme === 'macos'
+            ? (isLight 
+                ? 'bg-white/85 backdrop-blur-2xl border border-black/15 shadow-[0_20px_70px_rgba(0,0,0,0.25)] text-slate-800' 
+                : 'bg-[#121826]/85 backdrop-blur-2xl border border-white/20 shadow-[0_25px_80px_rgba(0,0,0,0.7)] text-zinc-100')
+            : osTheme === 'android'
+            ? (isLight
+                ? 'bg-[#edf3f0] border border-[#d0ded6] shadow-2xl text-slate-900'
+                : 'bg-[#151c27] border border-[#263548] shadow-2xl text-zinc-100')
+            : (isLight
+                ? 'bg-white border border-slate-300 shadow-2xl text-slate-800'
+                : 'bg-[#0d1424] border border-cyan-500/30 shadow-[0_15px_60px_rgba(0,0,0,0.8),0_0_35px_rgba(0,240,255,0.15)] text-zinc-100')
+          }
         `}
       >
-        {/* Windows 11 Title Bar */}
-        <div className="h-11 px-3 bg-[#080d18] border-b border-cyan-900/40 flex items-center justify-between shrink-0 select-none">
-          <div className="flex items-center gap-2.5 min-w-0">
-            <div className="p-1 rounded-lg bg-cyan-950/80 border border-cyan-500/30">
+        {/* Title Bar */}
+        <div className={`h-11 px-3.5 border-b flex items-center justify-between shrink-0 select-none ${
+          osTheme === 'macos'
+            ? (isLight ? 'bg-white/70 border-black/10' : 'bg-[#161f30]/80 border-white/10')
+            : osTheme === 'android'
+            ? (isLight ? 'bg-[#e2ebe6] border-[#d2ded7]' : 'bg-[#1b2535] border-[#29384e]')
+            : (isLight ? 'bg-slate-100 border-slate-200' : 'bg-[#080d18] border-cyan-900/40')
+        }`}>
+          {/* macOS Mode: Traffic Lights on Left */}
+          {osTheme === 'macos' && (
+            <div className="flex items-center gap-2 mr-3">
+              <button
+                onClick={onClose}
+                className="w-3.5 h-3.5 rounded-full bg-[#ff5f56] border border-[#e0443e] hover:brightness-110 flex items-center justify-center transition-all group cursor-pointer"
+                title="Yopish (Close window)"
+              >
+                <X className="w-2.5 h-2.5 text-black/70 opacity-0 group-hover:opacity-100 transition-opacity" />
+              </button>
+              <button
+                onClick={() => setIsMaximized(false)}
+                className="w-3.5 h-3.5 rounded-full bg-[#ffbd2e] border border-[#dea123] hover:brightness-110 flex items-center justify-center transition-all group cursor-pointer"
+                title="Minimallashtirish (Minimize)"
+              >
+                <Minus className="w-2.5 h-2.5 text-black/70 opacity-0 group-hover:opacity-100 transition-opacity" />
+              </button>
+              <button
+                onClick={() => setIsMaximized(!isMaximized)}
+                className="w-3.5 h-3.5 rounded-full bg-[#27c93f] border border-[#1aab29] hover:brightness-110 flex items-center justify-center transition-all group cursor-pointer"
+                title={isMaximized ? "Kichiklashtirish" : "To'liq ekranga yoyish (Maximize)"}
+              >
+                <Plus className="w-2.5 h-2.5 text-black/70 opacity-0 group-hover:opacity-100 transition-opacity" />
+              </button>
+            </div>
+          )}
+
+          {/* Android Mode: Back button on Left */}
+          {osTheme === 'android' && (
+            <button
+              onClick={onClose}
+              className="mr-2 p-1 rounded-full hover:bg-black/10 dark:hover:bg-white/10 text-zinc-400 hover:text-zinc-100 transition-colors"
+              title="Orqaga / Yopish"
+            >
+              <Minus className="w-4 h-4 rotate-90" />
+            </button>
+          )}
+
+          {/* App title and command info */}
+          <div className="flex items-center gap-2.5 min-w-0 flex-1">
+            <div className={`p-1 rounded-lg ${osTheme === 'macos' ? 'bg-white/10' : osTheme === 'android' ? 'bg-emerald-500/20' : 'bg-cyan-950/80 border border-cyan-500/30'}`}>
               {meta.icon}
             </div>
-            <span className="text-xs font-semibold text-zinc-200 truncate font-sans">
+            <span className={`text-xs font-semibold truncate font-sans ${isLight ? 'text-slate-900' : 'text-zinc-100'}`}>
               {meta.title}
             </span>
-            <span className="hidden sm:inline text-[10px] px-1.5 py-0.5 rounded bg-zinc-900 border border-zinc-700 font-mono text-zinc-400">
+            <span className={`hidden sm:inline text-[10px] px-1.5 py-0.5 rounded font-mono ${
+              isLight ? 'bg-slate-200 text-slate-700' : 'bg-zinc-900 border border-zinc-700 text-zinc-400'
+            }`}>
               {meta.command}
             </span>
           </div>
 
-          {/* Action buttons */}
+          {/* Action buttons on Right */}
           <div className="flex items-center gap-1.5">
             <button
               onClick={handleLaunchProtocol}
-              className="hidden sm:flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-cyan-950/70 hover:bg-cyan-900/80 border border-cyan-500/30 text-cyan-300 text-[11px] font-mono transition-all active:scale-95"
+              className={`hidden sm:flex items-center gap-1.5 px-2.5 py-1 text-[11px] font-mono transition-all active:scale-95 ${
+                osTheme === 'macos'
+                  ? 'rounded-xl bg-blue-500/20 hover:bg-blue-500/30 text-blue-400 border border-blue-400/30'
+                  : osTheme === 'android'
+                  ? 'rounded-full bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-400 border border-emerald-500/30'
+                  : 'rounded-lg bg-cyan-950/70 hover:bg-cyan-900/80 border border-cyan-500/30 text-cyan-300'
+              }`}
               title="Windows tizimida ochish (protokol / buyruq nusxalash)"
             >
               {copiedCli ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <ExternalLink className="w-3.5 h-3.5" />}
-              <span>{copiedCli ? 'Buyruq nusxalandi!' : 'Windows-da ochish'}</span>
+              <span>{copiedCli ? 'Buyruq nusxalandi!' : 'Tizimda ochish'}</span>
             </button>
 
-            {/* Window Controls */}
-            <div className="flex items-center ml-2">
-              <button
-                onClick={onClose}
-                className="w-8 h-7 flex items-center justify-center rounded text-zinc-400 hover:text-zinc-100 hover:bg-zinc-800 transition-colors"
-                title="Minimallashtirish"
-              >
-                <Minus className="w-3.5 h-3.5" />
-              </button>
-              <button
-                onClick={() => setIsMaximized(!isMaximized)}
-                className="w-8 h-7 flex items-center justify-center rounded text-zinc-400 hover:text-zinc-100 hover:bg-zinc-800 transition-colors"
-                title={isMaximized ? "Kichiklashtirish" : "Kattalashtirish"}
-              >
-                <Square className="w-3 h-3" />
-              </button>
-              <button
-                onClick={onClose}
-                className="w-8 h-7 flex items-center justify-center rounded text-zinc-400 hover:text-white hover:bg-rose-600 transition-colors"
-                title="Yopish"
-              >
-                <X className="w-4 h-4" />
-              </button>
-            </div>
+            {/* Windows 12 Mode / Standard Caption Buttons */}
+            {osTheme !== 'macos' && (
+              <div className="flex items-center ml-2">
+                <button
+                  onClick={onClose}
+                  className="w-8 h-7 flex items-center justify-center rounded text-zinc-400 hover:text-zinc-100 hover:bg-zinc-800 transition-colors"
+                  title="Minimallashtirish"
+                >
+                  <Minus className="w-3.5 h-3.5" />
+                </button>
+                <button
+                  onClick={() => setIsMaximized(!isMaximized)}
+                  className="w-8 h-7 flex items-center justify-center rounded text-zinc-400 hover:text-zinc-100 hover:bg-zinc-800 transition-colors"
+                  title={isMaximized ? "Kichiklashtirish" : "Kattalashtirish"}
+                >
+                  <Square className="w-3 h-3" />
+                </button>
+                <button
+                  onClick={onClose}
+                  className="w-8 h-7 flex items-center justify-center rounded text-zinc-400 hover:text-white hover:bg-rose-600 transition-colors"
+                  title="Yopish"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
+            )}
           </div>
         </div>
 
         {/* Application Body */}
-        <div className="flex-1 min-h-0 bg-[#070b14] overflow-hidden flex flex-col">
+        <div className={`flex-1 min-h-0 overflow-hidden flex flex-col ${isLight ? 'bg-white' : 'bg-[#070b14]'}`}>
           {appId === 'calculator' && <CalculatorApp />}
           {appId === 'clock' && <ClockApp />}
           {appId === 'cmd' && <CmdApp language={language} />}
@@ -238,10 +309,18 @@ export const WindowsAppModal: React.FC<WindowsAppModalProps> = ({
           {appId === 'calendar' && <CalendarApp />}
         </div>
 
-        {/* Windows Status Bar */}
-        <div className="h-7 px-3 bg-[#080d18] border-t border-cyan-900/30 flex items-center justify-between text-[11px] font-mono text-zinc-500 shrink-0">
+        {/* Status Bar */}
+        <div className={`h-7 px-3.5 border-t flex items-center justify-between text-[11px] font-mono shrink-0 ${
+          isLight 
+            ? 'bg-slate-100 border-slate-200 text-slate-500' 
+            : 'bg-[#080d18] border-cyan-900/30 text-zinc-500'
+        }`}>
           <span className="truncate">Local Desktop: {meta.path}</span>
-          <span className="hidden sm:inline text-cyan-400/80">Windows NT 10.0 • JARVIS v1.4</span>
+          <span className={`hidden sm:inline ${
+            osTheme === 'macos' ? 'text-blue-400/90' : osTheme === 'android' ? 'text-emerald-400/90' : 'text-cyan-400/80'
+          }`}>
+            {osTheme === 'macos' ? 'macOS 27 Liquid Glass' : osTheme === 'android' ? 'Android 16 Material You' : 'Windows 12 Fluent'} • JARVIS v1.5
+          </span>
         </div>
       </div>
     </div>

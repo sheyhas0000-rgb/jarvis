@@ -13,18 +13,26 @@ import {
   Volume2,
   Download,
   Upload,
-  Check
+  Check,
+  Laptop,
+  Monitor,
+  Smartphone,
+  Sparkles,
+  Cpu
 } from 'lucide-react';
 import { AppSettings, PermissionType, SupportedLanguage } from '../types';
 import { ALL_COMMANDS_META } from '../commands/commandRegistry';
 import { StorageService } from '../services/storageService';
+import { TTSService } from '../services/ttsService';
 import { t, normalizeLang } from '../utils/i18n';
+import { detectOSInfo, getEffectiveOSType } from '../utils/osDetector';
 
 interface SettingsProps {
   settings: AppSettings;
   onUpdateSettings: (newSettings: AppSettings) => void;
   onClearAllData: () => void;
   theme?: 'dark' | 'light';
+  osTheme?: import('../types').ActiveOSType;
 }
 
 export const Settings: React.FC<SettingsProps> = ({
@@ -32,6 +40,7 @@ export const Settings: React.FC<SettingsProps> = ({
   onUpdateSettings,
   onClearAllData,
   theme = 'dark',
+  osTheme = 'windows',
 }) => {
   const [activeTab, setActiveTab] = useState<'general' | 'permissions' | 'commands' | 'storage'>('general');
   const [commandSearch, setCommandSearch] = useState('');
@@ -158,6 +167,130 @@ export const Settings: React.FC<SettingsProps> = ({
               </div>
             </div>
 
+            {/* OS Concept Theme Selector (Auto / macOS / Windows / Android) */}
+            <div>
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1.5 mb-2">
+                <div>
+                  <label className="block text-xs font-bold text-zinc-200">{strings.settings.osTheme}</label>
+                  <span className="text-[11px] text-zinc-400 block">{strings.settings.osThemeDesc}</span>
+                </div>
+                <div className="px-2.5 py-1 rounded-xl bg-cyan-950/70 border border-cyan-500/40 text-cyan-300 text-[11px] font-mono flex items-center gap-1.5 self-start sm:self-auto shadow-sm">
+                  <Cpu className="w-3.5 h-3.5 text-cyan-400 shrink-0" />
+                  <span>{strings.settings.osDetectedLabel} <strong>{detectOSInfo().detectedOSName}</strong></span>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2.5">
+                {/* Auto Button */}
+                <button
+                  type="button"
+                  onClick={() => onUpdateSettings({ ...settings, osTheme: 'auto' })}
+                  className={`
+                    p-3.5 rounded-2xl border text-left transition-all relative overflow-hidden group
+                    ${settings.osTheme === 'auto'
+                      ? 'bg-cyan-500/15 border-cyan-400 text-cyan-300 shadow-[0_0_20px_rgba(0,240,255,0.2)]'
+                      : 'bg-black/40 border-zinc-800 text-zinc-300 hover:border-zinc-700 hover:bg-black/60'}
+                  `}
+                >
+                  <div className="flex items-center justify-between mb-1.5">
+                    <span className="p-1.5 rounded-lg bg-cyan-950 border border-cyan-500/30 text-cyan-400">
+                      <Sparkles className="w-4 h-4" />
+                    </span>
+                    {settings.osTheme === 'auto' && (
+                      <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-cyan-500/30 text-cyan-300 font-mono font-bold">
+                        ACTIVE
+                      </span>
+                    )}
+                  </div>
+                  <span className="font-bold text-xs block">{strings.settings.osThemeAuto}</span>
+                  <span className="text-[10px] text-zinc-400 block mt-0.5">
+                    {detectOSInfo().detectedOSName}
+                  </span>
+                </button>
+
+                {/* macOS 27 Button */}
+                <button
+                  type="button"
+                  onClick={() => onUpdateSettings({ ...settings, osTheme: 'macos' })}
+                  className={`
+                    p-3.5 rounded-2xl border text-left transition-all relative overflow-hidden group
+                    ${settings.osTheme === 'macos'
+                      ? 'bg-blue-500/15 border-blue-400 text-blue-300 shadow-[0_0_20px_rgba(59,130,246,0.25)]'
+                      : 'bg-black/40 border-zinc-800 text-zinc-300 hover:border-zinc-700 hover:bg-black/60'}
+                  `}
+                >
+                  <div className="flex items-center justify-between mb-1.5">
+                    <span className="p-1.5 rounded-lg bg-blue-950 border border-blue-500/30 text-blue-400">
+                      <Laptop className="w-4 h-4" />
+                    </span>
+                    {settings.osTheme === 'macos' && (
+                      <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-blue-500/30 text-blue-300 font-mono font-bold">
+                        ACTIVE
+                      </span>
+                    )}
+                  </div>
+                  <span className="font-bold text-xs block">{strings.settings.osThemeMac}</span>
+                  <span className="text-[10px] text-zinc-400 block mt-0.5">
+                    Liquid Glass & Traffic Lights
+                  </span>
+                </button>
+
+                {/* Windows 12 Button */}
+                <button
+                  type="button"
+                  onClick={() => onUpdateSettings({ ...settings, osTheme: 'windows' })}
+                  className={`
+                    p-3.5 rounded-2xl border text-left transition-all relative overflow-hidden group
+                    ${settings.osTheme === 'windows'
+                      ? 'bg-cyan-500/15 border-cyan-400 text-cyan-300 shadow-[0_0_20px_rgba(0,240,255,0.25)]'
+                      : 'bg-black/40 border-zinc-800 text-zinc-300 hover:border-zinc-700 hover:bg-black/60'}
+                  `}
+                >
+                  <div className="flex items-center justify-between mb-1.5">
+                    <span className="p-1.5 rounded-lg bg-cyan-950 border border-cyan-500/30 text-cyan-400">
+                      <Monitor className="w-4 h-4" />
+                    </span>
+                    {settings.osTheme === 'windows' && (
+                      <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-cyan-500/30 text-cyan-300 font-mono font-bold">
+                        ACTIVE
+                      </span>
+                    )}
+                  </div>
+                  <span className="font-bold text-xs block">{strings.settings.osThemeWindows}</span>
+                  <span className="text-[10px] text-zinc-400 block mt-0.5">
+                    Mica & Fluent Acrylic
+                  </span>
+                </button>
+
+                {/* Android 16 Button */}
+                <button
+                  type="button"
+                  onClick={() => onUpdateSettings({ ...settings, osTheme: 'android' })}
+                  className={`
+                    p-3.5 rounded-2xl border text-left transition-all relative overflow-hidden group
+                    ${settings.osTheme === 'android'
+                      ? 'bg-emerald-500/15 border-emerald-400 text-emerald-300 shadow-[0_0_20px_rgba(16,185,129,0.25)]'
+                      : 'bg-black/40 border-zinc-800 text-zinc-300 hover:border-zinc-700 hover:bg-black/60'}
+                  `}
+                >
+                  <div className="flex items-center justify-between mb-1.5">
+                    <span className="p-1.5 rounded-lg bg-emerald-950 border border-emerald-500/30 text-emerald-400">
+                      <Smartphone className="w-4 h-4" />
+                    </span>
+                    {settings.osTheme === 'android' && (
+                      <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-emerald-500/30 text-emerald-300 font-mono font-bold">
+                        ACTIVE
+                      </span>
+                    )}
+                  </div>
+                  <span className="font-bold text-xs block">{strings.settings.osThemeAndroid}</span>
+                  <span className="text-[10px] text-zinc-400 block mt-0.5">
+                    Material You Expressive
+                  </span>
+                </button>
+              </div>
+            </div>
+
             {/* Theme Selector (Dark / Light) */}
             <div>
               <label className="block text-xs font-medium text-zinc-400 mb-1.5">{strings.settings.theme}</label>
@@ -172,7 +305,7 @@ export const Settings: React.FC<SettingsProps> = ({
                   }`}
                 >
                   <Moon className="w-4 h-4 text-cyan-400" />
-                  <span>Dark</span>
+                  <span>{strings.settings.themeDark}</span>
                 </button>
                 <button
                   type="button"
@@ -184,7 +317,7 @@ export const Settings: React.FC<SettingsProps> = ({
                   }`}
                 >
                   <Sun className="w-4 h-4 text-amber-400" />
-                  <span>Light</span>
+                  <span>{strings.settings.themeLight}</span>
                 </button>
               </div>
             </div>
@@ -204,12 +337,32 @@ export const Settings: React.FC<SettingsProps> = ({
                 </span>
                 <span className="text-xs text-zinc-500">{strings.settings.ttsDesc}</span>
               </div>
-              <input
-                type="checkbox"
-                checked={settings.ttsEnabled}
-                onChange={() => onUpdateSettings({ ...settings, ttsEnabled: !settings.ttsEnabled })}
-                className="w-4 h-4 accent-cyan-400 cursor-pointer"
-              />
+              <div className="flex items-center gap-2.5">
+                <button
+                  type="button"
+                  onClick={() => {
+                    const phrase = lang === 'en' 
+                      ? "Hello! JARVIS text-to-speech voice response is active." 
+                      : lang === 'ru' 
+                      ? "Здравствуйте! Голосовой ответ JARVIS активен." 
+                      : "Salom! JARVIS matnli javob ovozi faol ishlamoqda.";
+                    TTSService.speak(phrase, lang, true);
+                  }}
+                  className={`px-2.5 py-1 rounded-lg text-xs font-medium border flex items-center gap-1.5 transition-all active:scale-95 ${
+                    isLight ? 'bg-slate-100 hover:bg-slate-200 border-slate-300 text-slate-700' : 'bg-zinc-900 hover:bg-zinc-800 border-zinc-700 text-cyan-300'
+                  }`}
+                  title="Ovozni sinab ko‘rish (Test voice)"
+                >
+                  <Volume2 className="w-3.5 h-3.5" />
+                  <span>{lang === 'en' ? 'Test Voice' : lang === 'ru' ? 'Тест' : 'Sinash'}</span>
+                </button>
+                <input
+                  type="checkbox"
+                  checked={settings.ttsEnabled}
+                  onChange={() => onUpdateSettings({ ...settings, ttsEnabled: !settings.ttsEnabled })}
+                  className="w-4 h-4 accent-cyan-400 cursor-pointer"
+                />
+              </div>
             </div>
 
             <div className="flex items-center justify-between py-2 border-b border-zinc-800/60">

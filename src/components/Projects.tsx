@@ -20,6 +20,8 @@ interface ProjectsProps {
   onCreateProject: (name: string, description: string, color: string, icon: string) => void;
   onDeleteProject: (id: string) => void;
   onSelectChat: (chatId: string) => void;
+  theme?: 'dark' | 'light';
+  osTheme?: import('../types').ActiveOSType;
 }
 
 export const Projects: React.FC<ProjectsProps> = ({
@@ -28,7 +30,10 @@ export const Projects: React.FC<ProjectsProps> = ({
   onCreateProject,
   onDeleteProject,
   onSelectChat,
+  theme = 'dark',
+  osTheme = 'windows',
 }) => {
+  const isLight = theme === 'light';
   const [showModal, setShowModal] = useState(false);
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
@@ -98,8 +103,8 @@ export const Projects: React.FC<ProjectsProps> = ({
               className={`
                 p-4 rounded-2xl border cursor-pointer transition-all duration-200 flex flex-col justify-between
                 ${isSelected
-                  ? 'bg-cyan-950/40 border-cyan-400 shadow-[0_0_20px_rgba(0,240,255,0.15)]'
-                  : 'bg-[#0c121e] border-cyan-900/30 hover:border-cyan-700/50 hover:bg-[#0f1726]'}
+                  ? (isLight ? 'bg-cyan-50 border-cyan-400 text-cyan-900 shadow-md' : 'bg-cyan-950/40 border-cyan-400 shadow-[0_0_20px_rgba(0,240,255,0.15)]')
+                  : (isLight ? 'bg-white border-slate-200 text-slate-800 hover:border-slate-300 shadow-sm' : 'bg-[#0c121e] border-cyan-900/30 hover:border-cyan-700/50 hover:bg-[#0f1726]')}
               `}
             >
               <div>

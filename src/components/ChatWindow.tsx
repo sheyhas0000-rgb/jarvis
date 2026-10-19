@@ -29,7 +29,7 @@ import {
   VolumeX,
   FileCode
 } from 'lucide-react';
-import { ChatSession, SupportedLanguage, WindowsAppId } from '../types';
+import { ChatSession, SupportedLanguage, WindowsAppId, ActiveOSType } from '../types';
 import { t } from '../utils/i18n';
 import { StorageService } from '../services/storageService';
 import { TTSService } from '../services/ttsService';
@@ -45,6 +45,7 @@ interface ChatWindowProps {
   ttsEnabled: boolean;
   onToggleTTS: () => void;
   theme: 'dark' | 'light';
+  osTheme?: ActiveOSType;
   onOpenApp?: (appId: WindowsAppId) => void;
   onOpenLogPanel?: () => void;
 }
@@ -60,6 +61,7 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
   ttsEnabled,
   onToggleTTS,
   theme,
+  osTheme = 'windows',
   onOpenApp,
   onOpenLogPanel,
 }) => {
@@ -267,18 +269,20 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
 
           <div className="hidden sm:flex items-center gap-2">
             <span className={`text-[10px] px-2.5 py-0.5 rounded-full font-mono flex items-center gap-1.5 border shadow-sm ${
-              isLight 
-                ? 'bg-cyan-50 border-cyan-300 text-cyan-800' 
-                : 'bg-cyan-950/80 border-cyan-500/40 text-cyan-300 shadow-[0_0_12px_rgba(0,240,255,0.25)]'
+              osTheme === 'macos'
+                ? (isLight ? 'bg-white/70 border-black/15 text-slate-800 backdrop-blur-md' : 'bg-white/10 border-white/20 text-white backdrop-blur-md shadow-[0_0_15px_rgba(255,255,255,0.1)]')
+                : osTheme === 'android'
+                ? (isLight ? 'bg-emerald-50 border-emerald-300 text-emerald-800' : 'bg-emerald-950/70 border-emerald-500/40 text-emerald-300 shadow-[0_0_15px_rgba(16,185,129,0.2)]')
+                : (isLight ? 'bg-cyan-50 border-cyan-300 text-cyan-800' : 'bg-cyan-950/80 border-cyan-500/40 text-cyan-300 shadow-[0_0_12px_rgba(0,240,255,0.25)]')
             }`}>
-              <Sparkles className="w-3 h-3 text-cyan-500 animate-pulse" />
-              v1.5 LOCAL AGENT
+              <Sparkles className="w-3 h-3 text-cyan-400 animate-pulse" />
+              {osTheme === 'macos' ? 'macOS 27 Liquid Glass' : osTheme === 'android' ? 'Android 16 Material You' : 'Windows 12 Fluent Design'}
             </span>
             <span className={`text-[10px] px-2.5 py-0.5 rounded-full font-mono flex items-center gap-1 border ${
-              isLight ? 'bg-slate-100 border-slate-300 text-slate-700' : 'bg-cyan-950/80 border-cyan-500/40 text-cyan-300'
+              isLight ? 'bg-slate-100 border-slate-300 text-slate-700' : 'bg-zinc-900/80 border-zinc-700 text-zinc-300'
             }`}>
               <ShieldCheck className="w-3 h-3 text-emerald-500" />
-              Windows Whitelist
+              100% Offline Local
             </span>
           </div>
         </div>
@@ -405,10 +409,18 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
               </div>
 
               {/* Message Bubble */}
-              <div className={`flex flex-col space-y-2 rounded-2xl p-4 text-sm leading-relaxed max-w-xl transition-all ${
-                isUser
-                  ? (isLight ? 'bg-blue-600 text-white rounded-tr-none shadow-sm' : 'bg-blue-600/20 border border-blue-500/30 text-blue-100 rounded-tr-none')
-                  : (isLight ? 'bg-white border border-slate-200 text-slate-800 shadow-sm rounded-tl-none' : 'bg-[#0c121e] border border-cyan-900/40 text-zinc-200 shadow-[0_0_20px_rgba(0,240,255,0.05)] rounded-tl-none')
+              <div className={`flex flex-col space-y-2 p-4 text-sm leading-relaxed max-w-xl transition-all ${
+                osTheme === 'macos'
+                  ? (isUser 
+                      ? 'bg-blue-500/30 border border-blue-400/40 text-blue-100 backdrop-blur-xl rounded-2xl shadow-lg'
+                      : (isLight ? 'bg-white/80 border border-black/10 text-slate-800 backdrop-blur-xl rounded-2xl shadow-md' : 'bg-white/10 border border-white/15 text-zinc-100 backdrop-blur-xl rounded-2xl shadow-lg'))
+                  : osTheme === 'android'
+                  ? (isUser
+                      ? 'bg-emerald-600 text-white rounded-[26px] rounded-tr-xs shadow-sm'
+                      : (isLight ? 'bg-slate-200 text-slate-900 rounded-[26px] rounded-tl-xs shadow-sm' : 'bg-[#18202f] border border-slate-700/60 text-zinc-100 rounded-[26px] rounded-tl-xs shadow-sm'))
+                  : (isUser
+                      ? (isLight ? 'bg-blue-600 text-white rounded-xl rounded-tr-none shadow-sm' : 'bg-blue-600/20 border border-blue-500/30 text-blue-100 rounded-xl rounded-tr-none')
+                      : (isLight ? 'bg-white border border-slate-200 text-slate-800 shadow-sm rounded-xl rounded-tl-none' : 'bg-[#0c121e] border border-cyan-900/40 text-zinc-200 shadow-[0_0_20px_rgba(0,240,255,0.05)] rounded-xl rounded-tl-none'))
               }`}>
                 <div className="flex items-center justify-between gap-4 text-[11px] font-mono opacity-60 mb-1">
                   <span>{isUser ? strings.chat.you : agentName}</span>
@@ -631,10 +643,12 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
           <button
             type="button"
             onClick={() => setShowQuickMenu(!showQuickMenu)}
-            className={`w-11 h-11 rounded-2xl flex items-center justify-center border transition-all shrink-0 ${
+            className={`w-11 h-11 flex items-center justify-center border transition-all shrink-0 ${
+              osTheme === 'android' ? 'rounded-full' : osTheme === 'macos' ? 'rounded-2xl' : 'rounded-xl'
+            } ${
               showQuickMenu 
                 ? 'bg-cyan-500/30 border-cyan-400 text-cyan-400' 
-                : (isLight ? 'bg-slate-100 hover:bg-slate-200 border-slate-300 text-slate-600' : 'bg-zinc-900/80 border-cyan-900/40 text-zinc-400 hover:text-cyan-400')
+                : (isLight ? 'bg-slate-100 hover:bg-slate-200 border-slate-300 text-slate-600' : 'bg-zinc-900/80 border-zinc-700 text-zinc-400 hover:text-zinc-200')
             }`}
             title={strings.chat.quickActionsTitle}
           >
@@ -652,10 +666,14 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
               }}
               onKeyDown={handleKeyDown}
               placeholder={strings.chat.placeholder}
-              className={`w-full pl-4 pr-12 py-3 rounded-2xl border text-sm focus:outline-none transition-all ${
+              className={`w-full pl-4 pr-12 py-3 text-sm focus:outline-none transition-all ${
+                osTheme === 'android' ? 'rounded-full pl-5 pr-14' : osTheme === 'macos' ? 'rounded-2xl backdrop-blur-xl' : 'rounded-xl'
+              } ${
                 isLight 
-                  ? 'bg-slate-50 border-slate-300 text-slate-900 placeholder-slate-400 focus:border-cyan-500' 
-                  : 'bg-[#070b12] border-cyan-900/40 text-zinc-100 placeholder-zinc-500 focus:border-cyan-500/70 shadow-inner'
+                  ? 'bg-slate-50 border border-slate-300 text-slate-900 placeholder-slate-400 focus:border-cyan-500' 
+                  : (osTheme === 'macos'
+                      ? 'bg-white/10 border border-white/20 text-zinc-100 placeholder-zinc-400 focus:border-white/40 shadow-inner'
+                      : 'bg-[#070b12] border border-cyan-900/40 text-zinc-100 placeholder-zinc-500 focus:border-cyan-500/70 shadow-inner')
               }`}
               disabled={isProcessing}
             />
@@ -679,9 +697,15 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
           <button
             type="submit"
             disabled={!input.trim() || isProcessing}
-            className={`w-11 h-11 rounded-2xl flex items-center justify-center border transition-all shrink-0 ${
+            className={`w-11 h-11 flex items-center justify-center border transition-all shrink-0 ${
+              osTheme === 'android' ? 'rounded-full' : osTheme === 'macos' ? 'rounded-2xl' : 'rounded-xl'
+            } ${
               input.trim() && !isProcessing
-                ? 'bg-cyan-500/25 border-cyan-400 text-cyan-400 shadow-[0_0_20px_rgba(0,240,255,0.3)] hover:bg-cyan-500/35 active:scale-95'
+                ? (osTheme === 'android'
+                    ? 'bg-emerald-500 text-slate-950 font-bold shadow-md hover:bg-emerald-400 active:scale-95 border-emerald-400'
+                    : osTheme === 'macos'
+                    ? 'bg-white/20 border-white/30 text-white shadow-lg hover:bg-white/30 active:scale-95'
+                    : 'bg-cyan-500/25 border-cyan-400 text-cyan-400 shadow-[0_0_20px_rgba(0,240,255,0.3)] hover:bg-cyan-500/35 active:scale-95')
                 : (isLight ? 'bg-slate-100 border-slate-200 text-slate-300 cursor-not-allowed' : 'bg-zinc-900/40 border-zinc-800 text-zinc-600 cursor-not-allowed')
             }`}
           >

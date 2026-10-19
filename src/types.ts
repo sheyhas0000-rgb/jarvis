@@ -83,6 +83,9 @@ export interface Project {
 
 export type SupportedLanguage = 'uz' | 'en' | 'ru';
 
+export type OSThemePreference = 'auto' | 'macos' | 'windows' | 'android';
+export type ActiveOSType = 'macos' | 'windows' | 'android';
+
 export type WindowsAppId = 
   | 'calculator'
   | 'clock'
@@ -100,6 +103,7 @@ export interface AppSettings {
   agentName: string;
   language: 'uz' | 'en' | 'ru' | 'uz_lat' | 'uz_kir';
   theme: 'dark' | 'light';
+  osTheme: OSThemePreference;
   animations: boolean;
   soundEnabled: boolean;
   ttsEnabled: boolean;

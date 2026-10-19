@@ -3,9 +3,18 @@ import { Bell, ShieldCheck, Sparkles, Terminal, HardDrive, CheckCircle2, Globe, 
 import { StorageService } from '../services/storageService';
 import { normalizeLang } from '../utils/i18n';
 
-export const Updates: React.FC = () => {
+interface UpdatesProps {
+  theme?: 'dark' | 'light';
+  osTheme?: import('../types').ActiveOSType;
+}
+
+export const Updates: React.FC<UpdatesProps> = ({
+  theme = 'dark',
+  osTheme = 'windows',
+}) => {
   const settings = StorageService.getSettings();
   const lang = normalizeLang(settings.language);
+  const isLight = theme === 'light';
 
   const versions = [
     {
@@ -14,6 +23,7 @@ export const Updates: React.FC = () => {
       current: true,
       date: lang === 'en' ? 'October 2026' : lang === 'ru' ? 'Октябрь 2026' : 'Oktabr 2026',
       changes: lang === 'en' ? [
+        { title: 'Auto OS Theme Detection', desc: 'Hardware & OS auto-detection adapting interface into macOS 27 Liquid Glass, Windows 12 Fluent Mica, or Android 16 Material You.' },
         { title: 'Voice Commands (Speech Recognition)', desc: 'Added microphone button for voice recognition in Uzbek, English, and Russian matching selected language.' },
         { title: 'Text-to-Speech (TTS) Voice Responses', desc: 'JARVIS now speaks out responses aloud with toggle control in Settings and quick speaker toggle in header.' },
         { title: 'Command History Navigation', desc: 'Saved last 20 commands with seamless Arrow Up (↑) / Arrow Down (↓) keyboard recall in chat input.' },

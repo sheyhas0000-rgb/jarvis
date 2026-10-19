@@ -59,6 +59,7 @@ export const DEFAULT_SETTINGS: AppSettings = {
   agentName: 'JARVIS',
   language: 'uz',
   theme: 'dark',
+  osTheme: 'auto',
   animations: true,
   soundEnabled: true,
   ttsEnabled: true,

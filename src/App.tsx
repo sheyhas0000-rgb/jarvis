@@ -11,6 +11,7 @@ import { ProfileModal } from './components/ProfileModal';
 import { PermissionModal } from './components/PermissionModal';
 import { WindowsAppModal } from './components/WindowsAppModal';
 import { LogPanel } from './components/LogPanel';
+import { SystemEnvModal } from './components/SystemEnvModal';
 import { 
   SidebarTab, 
   ChatSession, 
@@ -20,7 +21,8 @@ import {
   Project, 
   PendingPermission,
   WindowsAppId,
-  SupportedLanguage
+  SupportedLanguage,
+  OSThemePreference
 } from './types';
 import { StorageService } from './services/storageService';
 import { ChatService } from './services/chatService';
@@ -30,7 +32,32 @@ import { CommandService } from './services/commandService';
 import { LocalAgentBridge } from './services/localAgentBridge';
 import { TTSService } from './services/ttsService';
 import { normalizeLang, t } from './utils/i18n';
-import { Menu, Globe, LayoutGrid, ShieldCheck, Moon, Sun, Terminal, Volume2, VolumeX } from 'lucide-react';
+import { detectOSInfo, getEffectiveOSType, getOSThemeTokens } from './utils/osDetector';
+import { 
+  Menu, 
+  Globe, 
+  LayoutGrid, 
+  ShieldCheck, 
+  Moon, 
+  Sun, 
+  Terminal, 
+  Volume2, 
+  VolumeX, 
+  Sparkles, 
+  Laptop, 
+  Monitor, 
+  Smartphone, 
+  Cpu, 
+  Check, 
+  Plus, 
+  Minus, 
+  X,
+  MessageSquare,
+  Clock,
+  Plug,
+  FolderKanban,
+  Settings as SettingsIcon
+} from 'lucide-react';
 
 export default function App() {
   // Navigation
@@ -41,7 +68,10 @@ export default function App() {
   // Command Execution Log Panel (v1.5)
   const [isLogPanelOpen, setIsLogPanelOpen] = useState(false);
 
-  // Windows Agent Connection Status
+  // System Environment & OS Diagnostics Modal
+  const [isEnvModalOpen, setIsEnvModalOpen] = useState(false);
+
+  // Local Agent Connection Status
   const [isAgentConnected, setIsAgentConnected] = useState(false);
 
   // Active Windows Application Modal (11 applications)
@@ -55,7 +85,7 @@ export default function App() {
       if (isMounted) setIsAgentConnected(ok);
     };
     check();
-    const interval = setInterval(check, 3500);
+    const interval = setInterval(check, 4000);
     return () => {
       isMounted = false;
       clearInterval(interval);
@@ -76,20 +106,27 @@ export default function App() {
   const activeLanguage: SupportedLanguage = normalizeLang(settings.language);
   const strings = t(activeLanguage);
 
+  // Calculate dynamic OS theme tokens
+  const effectiveOS = getEffectiveOSType(settings.osTheme);
+  const detectedInfo = detectOSInfo();
+  const themeTokens = getOSThemeTokens(effectiveOS, settings.theme);
+  const isLight = settings.theme === 'light';
+
   // Sync active chat object
   const activeChat = chats.find(c => c.id === activeChatId) || chats[0] || ChatService.createNewChat();
 
-  // Keep HTML document metadata in sync with language
+  // Keep HTML document metadata in sync with language and OS theme
   useEffect(() => {
     document.documentElement.lang = activeLanguage;
+    const osSuffix = effectiveOS === 'macos' ? 'macOS 27' : effectiveOS === 'android' ? 'Android 16' : 'Windows 12';
     if (activeLanguage === 'en') {
-      document.title = 'JARVIS Windows Assistant v1.5';
+      document.title = `JARVIS Assistant v1.5 (${osSuffix})`;
     } else if (activeLanguage === 'ru') {
-      document.title = 'JARVIS Windows Ассистент v1.5';
+      document.title = `JARVIS Ассистент v1.5 (${osSuffix})`;
     } else {
-      document.title = 'JARVIS Windows Yordamchisi v1.5';
+      document.title = `JARVIS Yordamchisi v1.5 (${osSuffix})`;
     }
-  }, [activeLanguage]);
+  }, [activeLanguage, effectiveOS]);
 
   // Load / Refresh lists from services
   const refreshState = useCallback(() => {
@@ -127,90 +164,136 @@ export default function App() {
     refreshState();
   };
 
-  // Handle Chat Archive
+  // Handle Archive Chat
   const handleArchiveChat = (id: string) => {
     ChatService.archiveChat(id);
     refreshState();
   };
 
-  // Handle Clear Chat Messages
+  // Clear current active chat messages
   const handleClearCurrentChat = () => {
     ChatService.clearChat(activeChat.id);
     refreshState();
   };
 
-  // Quick Language Switcher
+  // Quick 1-click language switcher
   const handleSetLanguage = (lang: SupportedLanguage) => {
     const updated = { ...settings, language: lang };
     StorageService.saveSettings(updated);
     setSettings(updated);
   };
 
-  // Handle Command Execution
-  const executeCommandProcess = async (text: string, forceConfirmed: boolean = false) => {
-    const now = new Date();
-    const timeFormatted = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+  // Quick OS Theme preference updater
+  const handleSetOSTheme = (osPref: OSThemePreference) => {
+    const updated = { ...settings, osTheme: osPref };
+    StorageService.saveSettings(updated);
+    setSettings(updated);
+  };
 
-    // 1. Append user message if not already confirmed step
-    if (!forceConfirmed) {
-      const userMsg: ChatMessage = {
-        id: `msg_user_${Date.now()}`,
-        sender: 'user',
-        text,
-        timeFormatted,
-        timestamp: Date.now(),
-      };
-      ChatService.addMessage(activeChat.id, userMsg);
-      refreshState();
-    }
+  // Central Command Execution Pipeline
+  const executeCommandProcess = async (text: string) => {
+    if (!text.trim() || isProcessing) return;
+
+    // 1. Add user message
+    const userMsg: ChatMessage = {
+      id: `msg_user_${Date.now()}`,
+      sender: 'user',
+      text: text.trim(),
+      timeFormatted: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+      timestamp: Date.now(),
+    };
+    ChatService.addMessage(activeChat.id, userMsg);
+    refreshState();
 
     setIsProcessing(true);
 
     try {
-      // 2. Execute via Local Command Service passing the active language
-      const result = await CommandService.execute(text, forceConfirmed, activeLanguage);
+      // 2. Parse command
+      const parsed = CommandService.parse(text.trim());
 
-      // 3. If an application was targeted, automatically open or close the simulated window!
+      // 3. Check for permission requirements
+      if (parsed.permissionType) {
+        const permType = parsed.permissionType;
+        const permRule = settings.permissions[permType];
+
+        if (!permRule?.enabled) {
+          const deniedMsg: ChatMessage = {
+            id: `msg_denied_${Date.now()}`,
+            sender: 'jarvis',
+            text: `⚠️ Ruxsat cheklangan: "${permType}" toifasiga Sozlamalar bo‘limida ruxsat berilmagan. Buyruqni bajarish uchun avval ruxsatni yoqing.`,
+            timeFormatted: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+            timestamp: Date.now(),
+            status: 'error',
+          };
+          ChatService.addMessage(activeChat.id, deniedMsg);
+          refreshState();
+          setIsProcessing(false);
+          return;
+        }
+
+        if (permRule?.requireConfirmation) {
+          setPendingPermission({
+            id: `perm_${Date.now()}`,
+            commandText: text.trim(),
+            permissionType: permType,
+            actionTitle: parsed.title || 'Lokal Amal',
+            details: parsed.confirmationMessage || 'Ushbu amalni lokal kompyuterda bajarishga ruxsat berasizmi?',
+            onConfirm: async () => {
+              setPendingPermission(null);
+              await finalizeExecution(text, parsed);
+            },
+            onCancel: () => {
+              setPendingPermission(null);
+              const cancelMsg: ChatMessage = {
+                id: `msg_cancel_${Date.now()}`,
+                sender: 'jarvis',
+                text: '❌ Foydalanuvchi tomonidan bekor qilindi.',
+                timeFormatted: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+                timestamp: Date.now(),
+                status: 'info',
+              };
+              ChatService.addMessage(activeChat.id, cancelMsg);
+              refreshState();
+              setIsProcessing(false);
+            },
+          });
+          return;
+        }
+      }
+
+      // If no permission roadblock, execute directly
+      await finalizeExecution(text, parsed);
+    } catch (err: any) {
+      const errorMsg: ChatMessage = {
+        id: `msg_err_${Date.now()}`,
+        sender: 'jarvis',
+        text: `❌ ${err.message || 'Lokal xatolik yuz berdi'}`,
+        timeFormatted: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+        timestamp: Date.now(),
+        status: 'error',
+      };
+      ChatService.addMessage(activeChat.id, errorMsg);
+      refreshState();
+      setIsProcessing(false);
+    }
+  };
+
+  const finalizeExecution = async (rawText: string, parsed: any) => {
+    try {
+      const result = await CommandService.execute(rawText, false, activeLanguage);
+
+      // Handle opening of simulated or real Windows app modal
       if (result.openedApp) {
         setActiveAppWindow(result.openedApp);
       }
+
+      // Handle closing of application modal
       if (result.closedApp) {
-        if (activeAppWindow === result.closedApp) {
+        if (activeAppWindow === result.closedApp || !activeAppWindow) {
           setActiveAppWindow(null);
         }
       }
 
-      // 4. Check if sensitive action requires confirmation
-      if (result.requiresConfirmation && result.permissionType) {
-        setPendingPermission({
-          id: `perm_${Date.now()}`,
-          commandText: text,
-          permissionType: result.permissionType,
-          actionTitle: result.confirmationMessage || strings.permissionModal.title,
-          details: result.confirmationMessage || strings.permissionModal.warning,
-          onConfirm: () => {
-            setPendingPermission(null);
-            executeCommandProcess(text, true);
-          },
-          onCancel: () => {
-            setPendingPermission(null);
-            const cancelMsg: ChatMessage = {
-              id: `msg_cancel_${Date.now()}`,
-              sender: 'jarvis',
-              text: `⚠️ ${activeLanguage === 'en' ? 'Action cancelled by user' : activeLanguage === 'ru' ? 'Действие отменено пользователем' : 'Amal foydalanuvchi tomonidan bekor qilindi'}: "${text}"`,
-              timeFormatted: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-              timestamp: Date.now(),
-              status: 'error',
-            };
-            ChatService.addMessage(activeChat.id, cancelMsg);
-            refreshState();
-          },
-        });
-        setIsProcessing(false);
-        return;
-      }
-
-      // 5. Append JARVIS execution response
       const jarvisMsg: ChatMessage = {
         id: `msg_jarvis_${Date.now()}`,
         sender: 'jarvis',
@@ -218,32 +301,37 @@ export default function App() {
         timeFormatted: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
         timestamp: Date.now(),
         status: result.success ? 'success' : 'error',
-        createdFile: result.createdFile,
-        fileItems: result.fileItems,
-        webLink: result.webLink,
         commandDetails: {
+          commandId: parsed.commandId,
+          category: parsed.category,
+          permissionUsed: parsed.permissionType,
           windowsCommand: result.windowsCommand,
-          executedAt: new Date().toISOString(),
+          executedAt: new Date().toLocaleTimeString(),
         },
+        fileItems: result.fileItems,
+        createdFile: result.createdFile,
+        webLink: result.webLink,
+        isRealWindows: result.isRealWindows,
       };
 
       ChatService.addMessage(activeChat.id, jarvisMsg);
       refreshState();
 
-      // Text-to-Speech (TTS) voice playback if enabled
+      // Trigger Text-to-Speech (TTS) voice if enabled in settings
       if (settings.ttsEnabled) {
-        TTSService.speak(result.speechText || result.message, activeLanguage, settings.ttsEnabled);
+        const textToSpeak = result.speechText || result.message;
+        TTSService.speak(textToSpeak, activeLanguage);
       }
 
-      // Sound feedback if enabled
+      // Sound notification if enabled
       if (settings.soundEnabled) {
         try {
           const audioCtx = new (window.AudioContext || (window as any).webkitAudioContext)();
           const osc = audioCtx.createOscillator();
           const gain = audioCtx.createGain();
-          osc.type = result.success ? 'sine' : 'sawtooth';
-          osc.frequency.setValueAtTime(result.success ? 587.33 : 220, audioCtx.currentTime);
-          gain.gain.setValueAtTime(0.05, audioCtx.currentTime);
+          osc.type = result.success ? 'sine' : 'square';
+          osc.frequency.setValueAtTime(result.success ? 880 : 330, audioCtx.currentTime);
+          gain.gain.setValueAtTime(0.04, audioCtx.currentTime);
           gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.15);
           osc.connect(gain);
           gain.connect(audioCtx.destination);
@@ -298,9 +386,7 @@ export default function App() {
   };
 
   return (
-    <div className={`flex h-screen w-screen font-sans overflow-hidden select-none transition-colors duration-200 ${
-      settings.theme === 'light' ? 'bg-slate-100 text-slate-800' : 'bg-[#05080e] text-zinc-100'
-    }`}>
+    <div className={`flex h-screen w-screen font-sans overflow-hidden select-none transition-colors duration-300 ${themeTokens.rootClass}`}>
       {/* Sidebar */}
       <Sidebar
         currentTab={currentTab}
@@ -314,19 +400,18 @@ export default function App() {
         agentName={settings.agentName}
         language={activeLanguage}
         theme={settings.theme}
+        osTheme={effectiveOS}
         isMobileOpen={isMobileSidebarOpen}
         onCloseMobile={() => setIsMobileSidebarOpen(false)}
       />
 
       {/* Main Content Area */}
       <div className="flex-1 flex flex-col h-full min-w-0 relative">
-        {/* Top Bar for Desktop and Mobile (Includes Hamburger & Language Switcher) */}
-        <div className={`h-12 px-4 border-b flex items-center justify-between z-20 shrink-0 select-none transition-colors ${
-          settings.theme === 'light' 
-            ? 'bg-white border-slate-200 text-slate-800' 
-            : 'bg-[#080d17] border-cyan-900/30 text-zinc-100'
-        }`}>
-          <div className="flex items-center gap-2">
+        {/* Universal Adaptive Top Bar */}
+        <header className={`h-13 px-3 sm:px-4 flex items-center justify-between z-20 shrink-0 select-none transition-all ${themeTokens.topBarClass}`}>
+          {/* Left: Mobile Menu + macOS Traffic Lights / Brand */}
+          <div className="flex items-center gap-2.5 min-w-0">
+            {/* Mobile Hamburger Button */}
             <button
               onClick={() => setIsMobileSidebarOpen(true)}
               className="md:hidden p-1.5 rounded-xl text-zinc-400 hover:text-cyan-400 hover:bg-cyan-950/40"
@@ -334,43 +419,151 @@ export default function App() {
             >
               <Menu className="w-5 h-5" />
             </button>
-            <span className="font-bold text-cyan-300 text-xs md:text-sm tracking-wider flex items-center gap-1.5 font-mono">
-              <span className="w-2 h-2 rounded-full bg-cyan-400 animate-pulse" />
-              {settings.agentName}
-              <span className="text-[10px] uppercase px-1.5 py-0.5 rounded bg-cyan-950/80 border border-cyan-500/30 text-cyan-400 font-mono">
-                v1.5
+
+            {/* macOS Mode: Iconic Liquid Glass Traffic Lights on Header */}
+            {effectiveOS === 'macos' && (
+              <div className="hidden sm:flex items-center gap-2 mr-2">
+                <button
+                  onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
+                  className="w-3.5 h-3.5 rounded-full bg-[#ff5f56] border border-[#e0443e] hover:brightness-110 flex items-center justify-center transition-all group cursor-pointer shadow-xs"
+                  title="Yon panelni yopish / ochish"
+                >
+                  <X className="w-2 h-2 text-black/60 opacity-0 group-hover:opacity-100 transition-opacity" />
+                </button>
+                <button
+                  onClick={() => setIsLogPanelOpen(prev => !prev)}
+                  className="w-3.5 h-3.5 rounded-full bg-[#ffbd2e] border border-[#dea123] hover:brightness-110 flex items-center justify-center transition-all group cursor-pointer shadow-xs"
+                  title="Loglar panelini ochish"
+                >
+                  <Minus className="w-2 h-2 text-black/60 opacity-0 group-hover:opacity-100 transition-opacity" />
+                </button>
+                <button
+                  onClick={handleNewChat}
+                  className="w-3.5 h-3.5 rounded-full bg-[#27c93f] border border-[#1aab29] hover:brightness-110 flex items-center justify-center transition-all group cursor-pointer shadow-xs"
+                  title="Yangi seans ochish"
+                >
+                  <Plus className="w-2 h-2 text-black/60 opacity-0 group-hover:opacity-100 transition-opacity" />
+                </button>
+              </div>
+            )}
+
+            {/* Brand Logo & Name */}
+            <div className="flex items-center gap-2 truncate">
+              <span className={`font-bold text-xs md:text-sm tracking-wider flex items-center gap-1.5 font-mono ${
+                effectiveOS === 'macos' ? 'text-blue-500 dark:text-blue-400' : effectiveOS === 'android' ? 'text-emerald-600 dark:text-emerald-400' : 'text-cyan-600 dark:text-cyan-400'
+              }`}>
+                <span className={`w-2 h-2 rounded-full animate-pulse ${
+                  effectiveOS === 'macos' ? 'bg-blue-400' : effectiveOS === 'android' ? 'bg-emerald-400' : 'bg-cyan-400'
+                }`} />
+                {settings.agentName}
               </span>
-            </span>
+              <span className={`text-[10px] font-mono px-1.5 py-0.5 rounded font-bold uppercase ${
+                effectiveOS === 'macos'
+                  ? 'rounded-full bg-blue-500/15 border border-blue-500/30 text-blue-400'
+                  : effectiveOS === 'android'
+                  ? 'rounded-full bg-emerald-500/15 border border-emerald-500/30 text-emerald-400'
+                  : 'rounded-md bg-cyan-950/80 border border-cyan-500/30 text-cyan-400'
+              }`}>
+                {effectiveOS === 'macos' ? 'macOS 27' : effectiveOS === 'android' ? 'Android 16' : 'Windows 12'}
+              </span>
+            </div>
           </div>
 
-          {/* Center / Right: Status + Theme Toggle + Logs + Language Switcher + App Launcher */}
-          <div className="flex items-center gap-2">
-            {/* Status Badge */}
-            <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-xl text-[11px] font-mono border bg-cyan-950/40 border-cyan-800/40 text-cyan-300">
-              <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-              <span className="hidden sm:inline">Windows Local</span>
-            </div>
+          {/* Center: Quick OS Concept Theme Selector (Auto / macOS / Windows / Android) */}
+          <div className="hidden lg:flex items-center p-1 rounded-xl border bg-black/30 dark:bg-black/50 border-white/10 dark:border-white/10 text-xs">
+            <button
+              onClick={() => handleSetOSTheme('auto')}
+              className={`flex items-center gap-1 px-2.5 py-1 rounded-lg transition-all ${
+                settings.osTheme === 'auto'
+                  ? 'bg-cyan-500/30 text-cyan-300 font-bold shadow-xs'
+                  : 'text-zinc-400 hover:text-zinc-200'
+              }`}
+              title="Avtomatik aniqlash (Auto OS Detection)"
+            >
+              <Sparkles className="w-3.5 h-3.5" />
+              <span>Auto ({detectedInfo.detectedOSName})</span>
+            </button>
 
-            {/* Theme Toggle (Dark / Light) */}
+            <button
+              onClick={() => handleSetOSTheme('macos')}
+              className={`flex items-center gap-1 px-2.5 py-1 rounded-lg transition-all ${
+                settings.osTheme === 'macos'
+                  ? 'bg-blue-500/30 text-blue-300 font-bold shadow-xs'
+                  : 'text-zinc-400 hover:text-zinc-200'
+              }`}
+              title="macOS 27 Liquid Glass Concept"
+            >
+              <Laptop className="w-3.5 h-3.5" />
+              <span>macOS 27</span>
+            </button>
+
+            <button
+              onClick={() => handleSetOSTheme('windows')}
+              className={`flex items-center gap-1 px-2.5 py-1 rounded-lg transition-all ${
+                settings.osTheme === 'windows'
+                  ? 'bg-cyan-500/30 text-cyan-300 font-bold shadow-xs'
+                  : 'text-zinc-400 hover:text-zinc-200'
+              }`}
+              title="Windows 12 Fluent Mica Concept"
+            >
+              <Monitor className="w-3.5 h-3.5" />
+              <span>Win 12</span>
+            </button>
+
+            <button
+              onClick={() => handleSetOSTheme('android')}
+              className={`flex items-center gap-1 px-2.5 py-1 rounded-lg transition-all ${
+                settings.osTheme === 'android'
+                  ? 'bg-emerald-500/30 text-emerald-300 font-bold shadow-xs'
+                  : 'text-zinc-400 hover:text-zinc-200'
+              }`}
+              title="Android 16 Material You Expressive Concept"
+            >
+              <Smartphone className="w-3.5 h-3.5" />
+              <span>Android 16</span>
+            </button>
+          </div>
+
+          {/* Right Controls: Interactive Diagnostics Badge + Theme + Logs + Lang + Apps */}
+          <div className="flex items-center gap-2 shrink-0">
+            {/* Interactive System Environment / Diagnostics Button (No fake stats!) */}
+            <button
+              onClick={() => setIsEnvModalOpen(true)}
+              className={`flex items-center gap-1.5 px-2.5 py-1 rounded-xl text-[11px] font-mono border transition-all active:scale-95 cursor-pointer ${
+                effectiveOS === 'macos'
+                  ? 'bg-blue-500/10 hover:bg-blue-500/20 border-blue-400/30 text-blue-300'
+                  : effectiveOS === 'android'
+                  ? 'bg-emerald-500/10 hover:bg-emerald-500/20 border-emerald-400/30 text-emerald-300'
+                  : 'bg-cyan-950/40 hover:bg-cyan-900/50 border-cyan-800/40 text-cyan-300'
+              }`}
+              title="Haqiqiy OS va Tizim diagnostikasini ko‘rish"
+            >
+              <Cpu className="w-3.5 h-3.5" />
+              <span className="hidden sm:inline font-semibold">
+                {settings.osTheme === 'auto' ? `Auto: ${detectedInfo.detectedOSName}` : themeTokens.name}
+              </span>
+            </button>
+
+            {/* Dark / Light Mode Toggle */}
             <button
               onClick={() => handleUpdateSettings({ ...settings, theme: settings.theme === 'light' ? 'dark' : 'light' })}
-              className={`p-1.5 rounded-xl border text-xs transition-all ${
-                settings.theme === 'light'
-                  ? 'bg-slate-100 border-slate-300 text-amber-600 hover:bg-slate-200'
-                  : 'bg-black/60 border-cyan-900/40 text-cyan-300 hover:bg-cyan-950/60'
+              className={`p-1.5 rounded-xl border text-xs transition-all active:scale-95 ${
+                isLight
+                  ? 'bg-slate-100 hover:bg-slate-200 border-slate-300 text-amber-600'
+                  : 'bg-black/50 hover:bg-zinc-800 border-cyan-900/40 text-cyan-300'
               }`}
               title={strings.header.themeToggle}
             >
-              {settings.theme === 'light' ? <Sun className="w-3.5 h-3.5" /> : <Moon className="w-3.5 h-3.5" />}
+              {isLight ? <Sun className="w-3.5 h-3.5" /> : <Moon className="w-3.5 h-3.5" />}
             </button>
 
-            {/* Logs Panel Button */}
+            {/* Command Execution Logs Panel Button */}
             <button
               onClick={() => setIsLogPanelOpen(prev => !prev)}
-              className={`px-2 py-1 rounded-xl border text-xs font-mono transition-all flex items-center gap-1 ${
+              className={`px-2 py-1 rounded-xl border text-xs font-mono transition-all flex items-center gap-1 active:scale-95 ${
                 isLogPanelOpen
                   ? 'bg-cyan-500/25 border-cyan-400 text-cyan-300'
-                  : (settings.theme === 'light' ? 'bg-slate-100 border-slate-300 text-slate-700 hover:bg-slate-200' : 'bg-black/60 border-cyan-900/40 text-zinc-400 hover:text-cyan-300')
+                  : (isLight ? 'bg-slate-100 border-slate-300 text-slate-700 hover:bg-slate-200' : 'bg-black/50 border-cyan-900/40 text-zinc-400 hover:text-cyan-300')
               }`}
               title={strings.header.logsPanel}
             >
@@ -379,12 +572,12 @@ export default function App() {
             </button>
 
             {/* 1-Click Language Switcher (UZ / EN / RU) */}
-            <div className="flex items-center p-0.5 bg-black/60 border border-cyan-900/40 rounded-xl">
+            <div className="flex items-center p-0.5 bg-black/50 border border-cyan-900/40 rounded-xl">
               <button
                 onClick={() => handleSetLanguage('uz')}
                 className={`px-2 py-0.5 rounded-lg text-[11px] font-mono font-bold transition-all ${
                   activeLanguage === 'uz'
-                    ? 'bg-cyan-500/25 text-cyan-300 border border-cyan-400/50 shadow-[0_0_10px_rgba(0,240,255,0.2)]'
+                    ? 'bg-cyan-500/25 text-cyan-300 border border-cyan-400/50 shadow-xs'
                     : 'text-zinc-500 hover:text-zinc-300'
                 }`}
                 title="O‘zbekcha"
@@ -395,7 +588,7 @@ export default function App() {
                 onClick={() => handleSetLanguage('en')}
                 className={`px-2 py-0.5 rounded-lg text-[11px] font-mono font-bold transition-all ${
                   activeLanguage === 'en'
-                    ? 'bg-cyan-500/25 text-cyan-300 border border-cyan-400/50 shadow-[0_0_10px_rgba(0,240,255,0.2)]'
+                    ? 'bg-cyan-500/25 text-cyan-300 border border-cyan-400/50 shadow-xs'
                     : 'text-zinc-500 hover:text-zinc-300'
                 }`}
                 title="English"
@@ -406,7 +599,7 @@ export default function App() {
                 onClick={() => handleSetLanguage('ru')}
                 className={`px-2 py-0.5 rounded-lg text-[11px] font-mono font-bold transition-all ${
                   activeLanguage === 'ru'
-                    ? 'bg-cyan-500/25 text-cyan-300 border border-cyan-400/50 shadow-[0_0_10px_rgba(0,240,255,0.2)]'
+                    ? 'bg-cyan-500/25 text-cyan-300 border border-cyan-400/50 shadow-xs'
                     : 'text-zinc-500 hover:text-zinc-300'
                 }`}
                 title="Русский"
@@ -415,20 +608,26 @@ export default function App() {
               </button>
             </div>
 
-            {/* Quick App launcher button */}
+            {/* Quick App Launcher Button */}
             <button
               onClick={() => setActiveAppWindow('calculator')}
-              className="hidden sm:flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-cyan-950/60 hover:bg-cyan-900/60 border border-cyan-500/30 text-cyan-300 text-xs font-mono transition-all"
-              title="Windows Ilovalari"
+              className={`hidden sm:flex items-center gap-1.5 px-2.5 py-1 text-xs font-mono transition-all active:scale-95 ${
+                effectiveOS === 'macos'
+                  ? 'rounded-xl bg-blue-500/20 hover:bg-blue-500/30 text-blue-300 border border-blue-400/40'
+                  : effectiveOS === 'android'
+                  ? 'rounded-full bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-300 border border-emerald-500/40'
+                  : 'rounded-xl bg-cyan-950/60 hover:bg-cyan-900/60 border border-cyan-500/30 text-cyan-300'
+              }`}
+              title="Lokal Ilovalar (Apps)"
             >
-              <LayoutGrid className="w-3.5 h-3.5 text-cyan-400" />
+              <LayoutGrid className="w-3.5 h-3.5" />
               <span>{strings.header.appsDock}</span>
             </button>
           </div>
-        </div>
+        </header>
 
-        {/* View Switcher */}
-        <main className="flex-1 h-full min-h-0 relative overflow-hidden">
+        {/* View Switcher Main Container */}
+        <main className="flex-1 h-full min-h-0 relative overflow-hidden flex flex-col">
           {currentTab === 'chat' && (
             <ChatWindow
               chat={activeChat}
@@ -441,6 +640,7 @@ export default function App() {
               ttsEnabled={settings.ttsEnabled}
               onToggleTTS={() => handleUpdateSettings({ ...settings, ttsEnabled: !settings.ttsEnabled })}
               theme={settings.theme}
+              osTheme={effectiveOS}
               onOpenApp={(appId) => setActiveAppWindow(appId)}
               onOpenLogPanel={() => setIsLogPanelOpen(true)}
             />
@@ -452,6 +652,7 @@ export default function App() {
               onUpdateSettings={handleUpdateSettings}
               onClearAllData={handleClearAllData}
               theme={settings.theme}
+              osTheme={effectiveOS}
             />
           )}
 
@@ -464,6 +665,8 @@ export default function App() {
               onRenameChat={handleRenameChat}
               onDeleteChat={handleDeleteChat}
               onArchiveChat={handleArchiveChat}
+              theme={settings.theme}
+              osTheme={effectiveOS}
             />
           )}
 
@@ -474,6 +677,8 @@ export default function App() {
               onSelectChat={handleSelectChat}
               onNewChat={handleNewChat}
               onViewAll={() => setCurrentTab('all_chats')}
+              theme={settings.theme}
+              osTheme={effectiveOS}
             />
           )}
 
@@ -481,6 +686,8 @@ export default function App() {
             <Plugins
               plugins={plugins}
               onTogglePlugin={handleTogglePlugin}
+              theme={settings.theme}
+              osTheme={effectiveOS}
             />
           )}
 
@@ -491,20 +698,96 @@ export default function App() {
               onCreateProject={handleCreateProject}
               onDeleteProject={handleDeleteProject}
               onSelectChat={handleSelectChat}
+              theme={settings.theme}
+              osTheme={effectiveOS}
             />
           )}
 
           {currentTab === 'updates' && (
-            <Updates />
+            <Updates 
+              theme={settings.theme}
+              osTheme={effectiveOS}
+            />
           )}
 
           {currentTab === 'profile' && (
             <ProfileModal
               agentName={settings.agentName}
               onUpdateAgentName={(name) => handleUpdateSettings({ ...settings, agentName: name })}
+              theme={settings.theme}
+              osTheme={effectiveOS}
             />
           )}
         </main>
+
+        {/* Responsive Mobile / Android Material You Bottom Navigation Bar */}
+        <nav className={`md:hidden shrink-0 h-14 border-t flex items-center justify-around px-2 select-none z-20 ${
+          effectiveOS === 'macos'
+            ? (isLight ? 'bg-white/80 backdrop-blur-xl border-black/10 text-slate-800' : 'bg-[#121824]/80 backdrop-blur-xl border-white/10 text-zinc-100')
+            : effectiveOS === 'android'
+            ? (isLight ? 'bg-[#e2ebe6] border-[#ceddd4] text-slate-900' : 'bg-[#18212e] border-[#29384e] text-zinc-100')
+            : (isLight ? 'bg-white border-slate-200 text-slate-800' : 'bg-[#080d18] border-cyan-900/30 text-zinc-100')
+        }`}>
+          <button
+            onClick={() => setCurrentTab('chat')}
+            className={`flex flex-col items-center justify-center py-1 px-3 rounded-2xl transition-all ${
+              currentTab === 'chat' 
+                ? (effectiveOS === 'android' ? 'bg-emerald-500/25 text-emerald-400 font-bold' : 'text-cyan-400 font-bold') 
+                : 'text-zinc-500'
+            }`}
+          >
+            <MessageSquare className="w-4 h-4" />
+            <span className="text-[10px] mt-0.5">{strings.nav.chat}</span>
+          </button>
+
+          <button
+            onClick={() => setCurrentTab('all_chats')}
+            className={`flex flex-col items-center justify-center py-1 px-3 rounded-2xl transition-all ${
+              currentTab === 'all_chats' 
+                ? (effectiveOS === 'android' ? 'bg-emerald-500/25 text-emerald-400 font-bold' : 'text-cyan-400 font-bold') 
+                : 'text-zinc-500'
+            }`}
+          >
+            <Clock className="w-4 h-4" />
+            <span className="text-[10px] mt-0.5">{strings.nav.all_chats}</span>
+          </button>
+
+          <button
+            onClick={() => setCurrentTab('plugins')}
+            className={`flex flex-col items-center justify-center py-1 px-3 rounded-2xl transition-all ${
+              currentTab === 'plugins' 
+                ? (effectiveOS === 'android' ? 'bg-emerald-500/25 text-emerald-400 font-bold' : 'text-cyan-400 font-bold') 
+                : 'text-zinc-500'
+            }`}
+          >
+            <Plug className="w-4 h-4" />
+            <span className="text-[10px] mt-0.5">{strings.nav.plugins}</span>
+          </button>
+
+          <button
+            onClick={() => setCurrentTab('projects')}
+            className={`flex flex-col items-center justify-center py-1 px-3 rounded-2xl transition-all ${
+              currentTab === 'projects' 
+                ? (effectiveOS === 'android' ? 'bg-emerald-500/25 text-emerald-400 font-bold' : 'text-cyan-400 font-bold') 
+                : 'text-zinc-500'
+            }`}
+          >
+            <FolderKanban className="w-4 h-4" />
+            <span className="text-[10px] mt-0.5">{strings.nav.projects}</span>
+          </button>
+
+          <button
+            onClick={() => setCurrentTab('settings')}
+            className={`flex flex-col items-center justify-center py-1 px-3 rounded-2xl transition-all ${
+              currentTab === 'settings' 
+                ? (effectiveOS === 'android' ? 'bg-emerald-500/25 text-emerald-400 font-bold' : 'text-cyan-400 font-bold') 
+                : 'text-zinc-500'
+            }`}
+          >
+            <SettingsIcon className="w-4 h-4" />
+            <span className="text-[10px] mt-0.5">{strings.nav.settings}</span>
+          </button>
+        </nav>
       </div>
 
       {/* Sensitive Action Permission Confirmation Modal */}
@@ -516,12 +799,14 @@ export default function App() {
         />
       )}
 
-      {/* Interactive Simulated Windows Application Modal */}
+      {/* Interactive Application Modal (Supports macOS, Windows, Android Chrome) */}
       {activeAppWindow && (
         <WindowsAppModal
           appId={activeAppWindow}
           onClose={() => setActiveAppWindow(null)}
           language={activeLanguage}
+          osTheme={effectiveOS}
+          theme={settings.theme}
         />
       )}
 
@@ -529,6 +814,17 @@ export default function App() {
       <LogPanel
         isOpen={isLogPanelOpen}
         onClose={() => setIsLogPanelOpen(false)}
+        language={activeLanguage}
+      />
+
+      {/* System Environment & OS Diagnostics Modal */}
+      <SystemEnvModal
+        isOpen={isEnvModalOpen}
+        onClose={() => setIsEnvModalOpen(false)}
+        activeOS={effectiveOS}
+        osThemePreference={settings.osTheme}
+        onSelectOSTheme={handleSetOSTheme}
+        theme={settings.theme}
         language={activeLanguage}
       />
     </div>
