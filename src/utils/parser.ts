@@ -1,5 +1,6 @@
 import { ParseResult, ApprovedLocation } from '../types';
 import { ALL_COMMANDS_META } from '../commands/commandRegistry';
+import { StorageService } from '../services/storageService';
 
 export function normalizeInput(text: string): string {
   return text
@@ -23,10 +24,27 @@ export function extractLocation(rawText: string): ApprovedLocation {
   return 'Desktop';
 }
 
-export function parseLocalCommand(rawInput: string): ParseResult {
+export function parseLocalCommand(rawInput: string, skipAliasCheck = false): ParseResult {
   const input = normalizeInput(rawInput);
   if (!input) {
     return { recognized: false, unrecognizedReason: 'Buyruq kiritilmadi / No command entered' };
+  }
+
+  // 0. Custom Aliases Resolution
+  if (!skipAliasCheck) {
+    try {
+      const aliases = StorageService.getCustomAliases();
+      const matched = aliases.find(a => a.alias.toLowerCase() === input);
+      if (matched) {
+        const parsed = parseLocalCommand(matched.command, true);
+        if (parsed.recognized) {
+          parsed.resolvedAlias = matched.alias;
+          return parsed;
+        }
+      }
+    } catch {
+      // storage unavailable or fallback
+    }
   }
 
   // 1. Direct keyword match against registered ALL_COMMANDS_META

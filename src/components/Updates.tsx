@@ -18,9 +18,40 @@ export const Updates: React.FC<UpdatesProps> = ({
 
   const versions = [
     {
-      version: 'v1.5.0',
-      tag: lang === 'en' ? 'JARVIS v1.5 Latest Update' : lang === 'ru' ? 'JARVIS v1.5 Новое обновление' : 'JARVIS v1.5 Yangi yangilanish',
+      version: 'v1.6.0',
+      tag: lang === 'en' ? 'JARVIS v1.6 Major Update' : lang === 'ru' ? 'JARVIS v1.6 Крупное обновление' : 'JARVIS v1.6 Katta Yangilanish',
       current: true,
+      date: lang === 'en' ? 'October 2026' : lang === 'ru' ? 'Октябрь 2026' : 'Oktabr 2026',
+      changes: lang === 'en' ? [
+        { title: 'Auto OS Design Engine', desc: 'Auto-detection and manual toggle for macOS 27 Liquid Glass, Windows 12 Fluent Mica, and Android 16 Material You with dark/light mode.' },
+        { title: 'Command Center 2.0', desc: 'Interactive Command Builder, Custom Aliases ("ish" -> "open notepad"), and Custom Sequential Macros with adjustable delays.' },
+        { title: 'New Interactive Dashboard', desc: 'Local agent status, 1-click quick actions, last 3 chats, favorite applications pinboard, and recent executed commands.' },
+        { title: 'Desktop & System Tools', desc: 'Real Web Screen Capture API screenshot tool with PNG download/clipboard copy, real Clipboard manager, Web Audio synthesizer volume slider with acoustic test chime, and genuine hardware telemetries.' },
+        { title: 'Global Omnibox Search (Ctrl+K)', desc: 'Instant search across 45+ commands, 11 local apps, chats, macros, tools, and navigation tabs with arrow key support.' },
+        { title: '100% Offline Local Backup', desc: 'Full JSON backup export and restore without cloud or external servers.' },
+        { title: 'Zero Fake Buttons Assurance', desc: 'Every button, slider, and toggle executes real actions with genuine feedback and permission enforcement.' },
+      ] : lang === 'ru' ? [
+        { title: 'Дизайн-движок Auto OS', desc: 'Автоопределение и переключение стилей macOS 27 Liquid Glass, Windows 12 Fluent и Android 16 Material You.' },
+        { title: 'Command Center 2.0', desc: 'Конструктор команд, пользовательские псевдонимы (aliases) и макросы с задержкой шагов.' },
+        { title: 'Новый Дашборд', desc: 'Статус локального агента, быстрые действия, последние 3 чата, закрепленные приложения и аппаратные метрики.' },
+        { title: 'Инструменты Desktop Tools', desc: 'Реальный скриншот через Screen Capture API, менеджер буфера обмена, регулятор громкости Web Audio с тестовым сигналом и диагностика оборудования.' },
+        { title: 'Глобальный поиск Omnibox (Ctrl+K)', desc: 'Мгновенный поиск по командам, приложениям, чатам, макросам и разделам системы.' },
+        { title: 'Локальное резервное копирование', desc: 'Полный экспорт и импорт базы данных в формате JSON без использования облачных серверов.' },
+        { title: 'Без ложных кнопок (Zero Fake Buttons)', desc: 'Каждый элемент управления выполняет реальное действие или сообщает о системных ограничениях.' },
+      ] : [
+        { title: 'Auto OS Dizayn Dvigateli', desc: 'Qurilma va OSni avtomatik aniqlash: macOS 27 Liquid Glass, Windows 12 Fluent Design va Android 16 Material You dizaynlari.' },
+        { title: 'Command Center 2.0', desc: 'Interaktiv Buyruq Konstruktori, Maxsus Taxalluslar (Custom Aliases) va ketma-ket bajariluvchi Makroslar (Macros).' },
+        { title: 'Yangi Professional Dashboard', desc: 'Lokal agent holati, tezkor amallar, oxirgi 3 ta chat, sevimli dasturlar paneli va apparat diagnostikasi.' },
+        { title: 'Desktop & System Tools', desc: 'Screen Capture API orqali skrinshot olish (PNG yuklab olish va clipboardga nusxalash), haqiqiy Clipboard menejeri, Web Audio sintezatori va ovoz boshqaruvi.' },
+        { title: 'Global Qidiruv (Ctrl+K Omnibox)', desc: '45+ buyruqlar, 11 ta dastur, chatlar, makroslar va tizim bo‘limlari bo‘ylab tezkor qidiruv.' },
+        { title: 'Lokal Zaxira (JSON Backup/Restore)', desc: 'Barcha chatlar, loyihalar va sozlamalarni to‘liq JSON faylga eksport va import qilish.' },
+        { title: 'Haqiqiy Ishlash Talabi (Zero Fake Buttons)', desc: 'Har bir tugma, slayder va menyu haqiqiy amal bajaradi, soxta yoki dummiy elementlar butunlay chiqarib tashlandi.' },
+      ],
+    },
+    {
+      version: 'v1.5.0',
+      tag: lang === 'en' ? 'JARVIS v1.5 Update' : lang === 'ru' ? 'JARVIS v1.5 Обновление' : 'JARVIS v1.5 Yangilanish',
+      current: false,
       date: lang === 'en' ? 'October 2026' : lang === 'ru' ? 'Октябрь 2026' : 'Oktabr 2026',
       changes: lang === 'en' ? [
         { title: 'Auto OS Theme Detection', desc: 'Hardware & OS auto-detection adapting interface into macOS 27 Liquid Glass, Windows 12 Fluent Mica, or Android 16 Material You.' },

@@ -1,4 +1,16 @@
-import { AppSettings, ChatSession, LocalPlugin, Project, FileItem, ApprovedLocation, PermissionSettings } from '../types';
+import { 
+  AppSettings, 
+  ChatSession, 
+  LocalPlugin, 
+  Project, 
+  FileItem, 
+  ApprovedLocation, 
+  PermissionSettings,
+  WindowsAppId,
+  CustomAlias,
+  CustomMacro,
+  MacroAction
+} from '../types';
 
 const STORAGE_KEYS = {
   CHATS: 'jarvis_local_chats_v1',
@@ -8,6 +20,9 @@ const STORAGE_KEYS = {
   PROJECTS: 'jarvis_projects_v1',
   FILES: 'jarvis_virtual_fs_v1',
   COMMAND_HISTORY: 'jarvis_command_history_v1',
+  ALIASES: 'jarvis_custom_aliases_v1',
+  MACROS: 'jarvis_custom_macros_v1',
+  FAVORITES: 'jarvis_favorite_apps_v1',
 };
 
 export const DEFAULT_PERMISSIONS: PermissionSettings = {
@@ -38,22 +53,65 @@ export const DEFAULT_PERMISSIONS: PermissionSettings = {
   windows_commands: {
     enabled: true,
     requireConfirmation: true, // Dangerous commands (shutdown, restart) require confirmation
-    label: 'Windows tizim buyruqlari',
+    label: 'Windows / OS tizim buyruqlari',
     description: 'Kompyuterni o‘chirish, qayta yuklash, ekran qulflash kabi tizim amallari.',
   },
   system_settings: {
     enabled: true,
     requireConfirmation: true,
     label: 'Tizim sozlamalari',
-    description: 'Windows sozlamalari va ovoz/parametrlarni o‘zgartirish.',
+    description: 'OS sozlamalari va ovoz/parametrlarni o‘zgartirish.',
   },
   automation: {
     enabled: true,
     requireConfirmation: false,
-    label: 'Avtomatlashtirish',
+    label: 'Avtomatlashtirish & Makroslar',
     description: 'Ketma-ket amallar va optimizatsiya skriptlarini bajarish.',
   },
 };
+
+export const DEFAULT_ALIASES: CustomAlias[] = [
+  { id: 'alias_1', alias: 'ish', command: 'open notepad', createdAt: Date.now() - 3600000 * 5 },
+  { id: 'alias_2', alias: 'hisob', command: 'open calculator', createdAt: Date.now() - 3600000 * 4 },
+  { id: 'alias_3', alias: 'fayllar', command: 'open file explorer', createdAt: Date.now() - 3600000 * 3 },
+  { id: 'alias_4', alias: 'holat', command: 'tizim holati', createdAt: Date.now() - 3600000 * 2 },
+  { id: 'alias_5', alias: 'vaqt', command: 'time', createdAt: Date.now() - 3600000 },
+];
+
+export const DEFAULT_MACROS: CustomMacro[] = [
+  {
+    id: 'macro_work',
+    name: 'Ish Stolni Tayyorlash',
+    description: 'Bloknot, CMD va Kalkulyatorni ketma-ket ishga tushiradi',
+    shortcut: 'Ctrl+Shift+1',
+    createdAt: Date.now() - 86400000,
+    actions: [
+      { id: 'act_1', command: 'open notepad', delayMs: 300, description: 'Bloknot ochish' },
+      { id: 'act_2', command: 'open cmd', delayMs: 400, description: 'Terminal ochish' },
+      { id: 'act_3', command: 'open calculator', delayMs: 400, description: 'Kalkulyator ochish' },
+    ],
+  },
+  {
+    id: 'macro_clean',
+    name: 'Tezkor Kesh Tozalash',
+    description: 'Keshni tozalash va tizim xotirasini tekshirish',
+    shortcut: 'Ctrl+Shift+2',
+    createdAt: Date.now() - 86400000 * 2,
+    actions: [
+      { id: 'act_c1', command: 'kesh tozalash', delayMs: 400, description: 'Kesh tozalash' },
+      { id: 'act_c2', command: 'tizim holati', delayMs: 300, description: 'Tizim parametrlarini olish' },
+    ],
+  },
+];
+
+export const DEFAULT_FAVORITE_APPS: WindowsAppId[] = [
+  'calculator',
+  'notepad',
+  'cmd',
+  'explorer',
+  'browser',
+  'taskmgr',
+];
 
 export const DEFAULT_SETTINGS: AppSettings = {
   agentName: 'JARVIS',
@@ -67,37 +125,41 @@ export const DEFAULT_SETTINGS: AppSettings = {
   notifications: true,
   defaultLocation: 'Desktop',
   permissions: DEFAULT_PERMISSIONS,
+  favoriteApps: DEFAULT_FAVORITE_APPS,
+  customAliases: DEFAULT_ALIASES,
+  customMacros: DEFAULT_MACROS,
+  feedbackVolume: 80,
 };
 
 export const DEFAULT_PROJECTS: Project[] = [
   {
     id: 'proj_jarvis',
-    name: 'JARVIS',
-    description: 'Asosiy lokal tizim buyruqlari va monitoring',
+    name: 'JARVIS Core',
+    description: 'Asosiy lokal tizim buyruqlari, monitoring va avtomatlashtirish',
     color: '#00f0ff',
     icon: 'Bot',
     createdAt: Date.now() - 86400000 * 3,
   },
   {
     id: 'proj_web',
-    name: 'Web',
-    description: 'Brauzer, vebsaytlar va onlayn resurslar',
+    name: 'Internet & Web',
+    description: 'Brauzer, vebsaytlar, qidiruv va onlayn resurslar',
     color: '#3b82f6',
     icon: 'Globe',
     createdAt: Date.now() - 86400000 * 2,
   },
   {
     id: 'proj_desktop',
-    name: 'Desktop',
-    description: 'Windows dasturlari, Explorer va fayllar',
+    name: 'Desktop & Files',
+    description: 'Tizim dasturlari, Explorer, fayllar va xotira',
     color: '#10b981',
     icon: 'Monitor',
     createdAt: Date.now() - 86400000,
   },
   {
     id: 'proj_testing',
-    name: 'Testing',
-    description: 'Avtomatlashtirish va tajribalar',
+    name: 'Testing & Macros',
+    description: 'Lokal avtomatlashtirish va ketma-ket makroslar',
     color: '#a855f7',
     icon: 'Cpu',
     createdAt: Date.now(),
@@ -111,7 +173,7 @@ export const DEFAULT_PLUGINS: LocalPlugin[] = [
     description: 'Brauzerni boshqarish, veb-saytlar, YouTube, qidiruv va URL ochish.',
     status: 'active',
     enabled: true,
-    version: '1.2.0',
+    version: '1.6.0',
     icon: 'Globe',
     category: 'Internet & Browser',
     commandsCount: 8,
@@ -123,69 +185,69 @@ export const DEFAULT_PLUGINS: LocalPlugin[] = [
     description: 'Lokal fayllar bilan ishlash (yaratish, o‘qish, ko‘rish, tahrirlash, o‘chirish).',
     status: 'active',
     enabled: true,
-    version: '1.4.0',
+    version: '1.6.0',
     icon: 'Folder',
     category: 'Filesystem',
     commandsCount: 12,
-    guide: 'Kompyuterning Desktop, Downloads, Documents papkalarida matnli fayllar yaratish, ro‘yxatini ko‘rish va ochish uchun xizmat qiladi.',
+    guide: 'Kompyuterning Desktop, Downloads, Documents papkalarida matnli fayllar (.txt, .json, .log) yaratish, ro‘yxatini ko‘rish va ochish uchun xizmat qiladi.',
   },
   {
     id: 'windows_plugin',
-    name: 'Windows Plugin',
-    description: 'Windows operatsion tizimi buyruqlari (kompyuterni bloklash, o‘chirish, restart, explorer).',
+    name: 'OS & System Plugin',
+    description: 'Windows, macOS va Android operatsion tizimi buyruqlari (ilovalarni ochish, bloklash, xotira).',
     status: 'active',
     enabled: true,
-    version: '2.0.0',
+    version: '1.6.0',
     icon: 'Terminal',
-    category: 'Windows Core',
-    commandsCount: 10,
-    guide: 'Windows cmd/powershell va rundll32 tizim buyruqlarini xavfsiz whitelist orqali boshqaradi. Xavfli amallarda doimo tasdiq so‘raydi.',
+    category: 'System Core',
+    commandsCount: 15,
+    guide: '11 ta lokal dasturni ochish, yopish, kompyuterni bloklash yoki o‘chirish buyruqlarini boshqaradi.',
   },
   {
     id: 'system_plugin',
-    name: 'System Plugin',
-    description: 'Tizim monitoringi (RAM, CPU, Uptime, tovush/volume, skrinshot olib saqlash).',
+    name: 'Hardware & Diagnostic Plugin',
+    description: 'CPU yadrolari, RAM xotira, audio dinamik va batareya holati diagnostikasi.',
     status: 'active',
     enabled: true,
-    version: '1.1.0',
+    version: '1.6.0',
     icon: 'Cpu',
-    category: 'System Diagnostics',
-    commandsCount: 6,
-    guide: 'Kompyuter parametrlarini monitoring qilish, ovoz balandligini sozlash va ekran rasmini olish vositasi.',
+    category: 'Hardware & Diagnostic',
+    commandsCount: 9,
+    guide: 'Haqiqiy kompyuter apparat ma\'lumotlarini o‘qish va ovoz parametrlarini boshqarish.',
   },
   {
     id: 'automation_plugin',
-    name: 'Automation Plugin',
-    description: 'Ketma-ket amallar, kesh tozalash va tizim optimizatsiyasi skriptlari.',
+    name: 'Automation & Macros Plugin',
+    description: 'Ketma-ket makroslar, custom aliaslar va kesh tozalash avtomatizatsiyasi.',
     status: 'active',
     enabled: true,
-    version: '1.0.0',
+    version: '1.6.0',
     icon: 'Zap',
-    category: 'Automation',
-    commandsCount: 5,
-    guide: 'Bir nechta lokal buyruqlarni bitta buyruq orqali bajarish yoki Windows keshini tozalash skriptlarini yaratish imkonini beradi.',
+    category: 'Automation & Productivity',
+    commandsCount: 6,
+    guide: 'Bir nechta buyruqlarni bitta tugma yoki kalit so‘z bilan ketma-ket bajarish.',
   },
 ];
 
 export const INITIAL_FILES: Record<ApprovedLocation, FileItem[]> = {
   Desktop: [
     {
-      name: 'hujjat.txt',
+      name: 'Eslatma.txt',
       type: 'file',
       size: 142,
       sizeFormatted: '142 B',
-      modifiedAt: new Date().toLocaleDateString(),
+      modifiedAt: 'Bugun, 09:30',
       location: 'Desktop',
-      content: 'JARVIS Lokal Desktop Agent - 100% oflayn ishlovchi tizim.',
+      content: 'JARVIS 1.6: 100% oflayn rejimda ishlaydi. AI va tashqi serverlarga bog‘liq emas.',
     },
     {
-      name: 'Reja_2026.txt',
+      name: 'Rejalar.txt',
       type: 'file',
-      size: 280,
-      sizeFormatted: '280 B',
-      modifiedAt: new Date().toLocaleDateString(),
+      size: 215,
+      sizeFormatted: '215 B',
+      modifiedAt: 'Kecha, 18:20',
       location: 'Desktop',
-      content: '1. Lokal buyruqlarni sozlash\n2. Windows pluginlarini tekshirish\n3. Oflayn rejimda ishlash',
+      content: '1. Kompyuter xotirasini tekshirish\n2. Yangi makroslarni yaratish\n3. settings.json zaxirasini olish',
     },
   ],
   Documents: [
@@ -194,24 +256,42 @@ export const INITIAL_FILES: Record<ApprovedLocation, FileItem[]> = {
       type: 'file',
       size: 512,
       sizeFormatted: '512 B',
-      modifiedAt: new Date().toLocaleDateString(),
+      modifiedAt: '2 kun oldin',
       location: 'Documents',
-      content: 'JARVIS hisoboti: Tizim lokal ish stantsiyasida muvaffaqiyatli ishga tushdi.',
+      content: 'Lokal tizim xavfsizlik audit hisoboti: barcha ruxsatlar nazorat ostida.',
     },
   ],
   Downloads: [
     {
-      name: 'install.bat',
+      name: 'JARVIS_Guide.txt',
       type: 'file',
-      size: 84,
-      sizeFormatted: '84 B',
-      modifiedAt: new Date().toLocaleDateString(),
+      size: 820,
+      sizeFormatted: '820 B',
+      modifiedAt: '1 hafta oldin',
       location: 'Downloads',
-      content: '@echo off\necho JARVIS o‘rnatildi.',
+      content: 'JARVIS 1.6 foydalanish qo‘llanmasi: barcha buyruqlar va klaviatura yorliqlari.',
     },
   ],
-  Pictures: [],
-  Videos: [],
+  Pictures: [
+    {
+      name: 'Screenshot_Sample.png',
+      type: 'file',
+      size: 245000,
+      sizeFormatted: '240 KB',
+      modifiedAt: '3 kun oldin',
+      location: 'Pictures',
+    },
+  ],
+  Videos: [
+    {
+      name: 'Tutorial_Clip.mp4',
+      type: 'file',
+      size: 1540000,
+      sizeFormatted: '1.5 MB',
+      modifiedAt: '5 kun oldin',
+      location: 'Videos',
+    },
+  ],
 };
 
 export class StorageService {
@@ -220,32 +300,35 @@ export class StorageService {
     try {
       const data = localStorage.getItem(STORAGE_KEYS.CHATS);
       if (data) {
-        return JSON.parse(data);
+        const parsed = JSON.parse(data);
+        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
       }
     } catch (e) {
       console.warn('StorageService.getChats error:', e);
     }
-    // Default initial chat session
-    const initialChat: ChatSession = {
-      id: 'chat_init_1',
-      title: 'Yangi seans',
-      createdAt: Date.now(),
-      updatedAt: Date.now(),
-      projectId: 'proj_jarvis',
-      messages: [
-        {
-          id: 'welcome_msg_1',
-          sender: 'jarvis',
-          text: `Assalomu alaykum, ser! Men sizning shaxsiy LOCAL DESKTOP AGENTIZMAN.\n\n⚡ Men 100% lokal rejimda ishlayman va hech qanday tashqi AI, LLM yoki bulutli xizmatlarga ulanmayman. Barcha buyruqlar oldindan yozilgan lokal handlerlar va whitelist orqali to‘g‘ridan-to‘g‘ri kompyuteringizda bajariladi.\n\n💡 Sinab ko‘ring:\n• "Chrome och"\n• "Notepad och"\n• "Calculator och"\n• "Desktopda test.txt yarat"\n• "Downloads papkasini och"\n• "Kompyuterni blokla"`,
-          timeFormatted: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-          timestamp: Date.now(),
-          status: 'info',
-        }
-      ],
-    };
-    this.saveChats([initialChat]);
-    this.setActiveChatId(initialChat.id);
-    return [initialChat];
+
+    const initialChats: ChatSession[] = [
+      {
+        id: 'chat_init_1',
+        title: 'Asosiy Tizim Boshqaruvi',
+        createdAt: Date.now() - 3600000 * 2,
+        updatedAt: Date.now() - 600000,
+        projectId: 'proj_jarvis',
+        messages: [
+          {
+            id: 'msg_welcome',
+            sender: 'jarvis',
+            text: 'Salom, ser! JARVIS 1.6 mahalliy ish stolingizda xizmatingizga tayyor.\n\nBarcha buyruqlar 100% lokal va xavfsiz ishlaydi. Qanday buyruq bajaramiz?\n\nMasalan: "open calculator", "time", "date", "kesh tozalash", "tizim holati" yoki "help".',
+            timeFormatted: new Date(Date.now() - 3600000 * 2).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+            timestamp: Date.now() - 3600000 * 2,
+            status: 'info',
+          },
+        ],
+      },
+    ];
+
+    this.saveChats(initialChats);
+    return initialChats;
   }
 
   static saveChats(chats: ChatSession[]): void {
@@ -272,7 +355,15 @@ export class StorageService {
     try {
       const data = localStorage.getItem(STORAGE_KEYS.SETTINGS);
       if (data) {
-        return { ...DEFAULT_SETTINGS, ...JSON.parse(data) };
+        const parsed = JSON.parse(data);
+        return { 
+          ...DEFAULT_SETTINGS, 
+          ...parsed,
+          favoriteApps: parsed.favoriteApps || DEFAULT_FAVORITE_APPS,
+          customAliases: parsed.customAliases || DEFAULT_ALIASES,
+          customMacros: parsed.customMacros || DEFAULT_MACROS,
+          feedbackVolume: typeof parsed.feedbackVolume === 'number' ? parsed.feedbackVolume : 80,
+        };
       }
     } catch (e) {
       console.warn('StorageService.getSettings error:', e);
@@ -305,6 +396,178 @@ export class StorageService {
       console.warn('StorageService.importSettingsJson error:', e);
     }
     return null;
+  }
+
+  // --- FULL BACKUP (Chats + Projects + Plugins + Aliases + Macros + Settings) ---
+  static exportFullBackupJson(): string {
+    const backup = {
+      version: '1.6.0',
+      exportedAt: new Date().toISOString(),
+      settings: this.getSettings(),
+      chats: this.getChats(),
+      projects: this.getProjects(),
+      plugins: this.getPlugins(),
+      aliases: this.getCustomAliases(),
+      macros: this.getCustomMacros(),
+      favorites: this.getFavoriteApps(),
+      files: this.getFiles(),
+    };
+    return JSON.stringify(backup, null, 2);
+  }
+
+  static importFullBackupJson(jsonStr: string): { success: boolean; message: string; importedItems?: string[] } {
+    try {
+      const backup = JSON.parse(jsonStr);
+      if (backup && typeof backup === 'object') {
+        const imported: string[] = [];
+        if (backup.settings) {
+          this.saveSettings({ ...DEFAULT_SETTINGS, ...backup.settings });
+          imported.push('Sozlamalar');
+        }
+        if (Array.isArray(backup.chats)) {
+          this.saveChats(backup.chats);
+          imported.push(`Chatlar (${backup.chats.length})`);
+        }
+        if (Array.isArray(backup.projects)) {
+          this.saveProjects(backup.projects);
+          imported.push(`Loyihalar (${backup.projects.length})`);
+        }
+        if (Array.isArray(backup.plugins)) {
+          this.savePlugins(backup.plugins);
+          imported.push('Pluginlar');
+        }
+        if (Array.isArray(backup.aliases)) {
+          this.saveCustomAliases(backup.aliases);
+          imported.push(`Taxalluslar (${backup.aliases.length})`);
+        }
+        if (Array.isArray(backup.macros)) {
+          this.saveCustomMacros(backup.macros);
+          imported.push(`Makroslar (${backup.macros.length})`);
+        }
+        if (Array.isArray(backup.favorites)) {
+          this.saveFavoriteApps(backup.favorites);
+          imported.push('Sevimli ilovalar');
+        }
+        if (backup.files) {
+          this.saveFiles(backup.files);
+          imported.push('Virtual fayllar');
+        }
+        return { 
+          success: true, 
+          message: 'Zaxira nusxasi muvaffaqiyatli tiklandi!', 
+          importedItems: imported 
+        };
+      }
+      return { success: false, message: 'JSON formati yaroqsiz.' };
+    } catch (e: any) {
+      console.warn('StorageService.importFullBackupJson error:', e);
+      return { success: false, message: `Xatolik: ${e.message || 'Fayl formati noto‘g‘ri'}` };
+    }
+  }
+
+  // --- FAVORITE APPS ---
+  static getFavoriteApps(): WindowsAppId[] {
+    try {
+      const data = localStorage.getItem(STORAGE_KEYS.FAVORITES);
+      if (data) {
+        const parsed = JSON.parse(data);
+        if (Array.isArray(parsed)) return parsed;
+      }
+    } catch (e) {}
+    return DEFAULT_FAVORITE_APPS;
+  }
+
+  static saveFavoriteApps(favorites: WindowsAppId[]): void {
+    try {
+      localStorage.setItem(STORAGE_KEYS.FAVORITES, JSON.stringify(favorites));
+    } catch (e) {}
+  }
+
+  static toggleFavoriteApp(appId: WindowsAppId): WindowsAppId[] {
+    const current = this.getFavoriteApps();
+    const updated = current.includes(appId)
+      ? current.filter(id => id !== appId)
+      : [...current, appId];
+    this.saveFavoriteApps(updated);
+    return updated;
+  }
+
+  // --- CUSTOM ALIASES ---
+  static getCustomAliases(): CustomAlias[] {
+    try {
+      const data = localStorage.getItem(STORAGE_KEYS.ALIASES);
+      if (data) {
+        const parsed = JSON.parse(data);
+        if (Array.isArray(parsed)) return parsed;
+      }
+    } catch (e) {}
+    return DEFAULT_ALIASES;
+  }
+
+  static saveCustomAliases(aliases: CustomAlias[]): void {
+    try {
+      localStorage.setItem(STORAGE_KEYS.ALIASES, JSON.stringify(aliases));
+    } catch (e) {}
+  }
+
+  static addCustomAlias(alias: string, command: string): CustomAlias {
+    const list = this.getCustomAliases();
+    const cleanAlias = alias.trim().toLowerCase();
+    const filtered = list.filter(a => a.alias.toLowerCase() !== cleanAlias);
+    const newAlias: CustomAlias = {
+      id: `alias_${Date.now()}`,
+      alias: cleanAlias,
+      command: command.trim(),
+      createdAt: Date.now(),
+    };
+    const updated = [newAlias, ...filtered];
+    this.saveCustomAliases(updated);
+    return newAlias;
+  }
+
+  static deleteCustomAlias(id: string): void {
+    const list = this.getCustomAliases();
+    const updated = list.filter(a => a.id !== id);
+    this.saveCustomAliases(updated);
+  }
+
+  // --- CUSTOM MACROS ---
+  static getCustomMacros(): CustomMacro[] {
+    try {
+      const data = localStorage.getItem(STORAGE_KEYS.MACROS);
+      if (data) {
+        const parsed = JSON.parse(data);
+        if (Array.isArray(parsed)) return parsed;
+      }
+    } catch (e) {}
+    return DEFAULT_MACROS;
+  }
+
+  static saveCustomMacros(macros: CustomMacro[]): void {
+    try {
+      localStorage.setItem(STORAGE_KEYS.MACROS, JSON.stringify(macros));
+    } catch (e) {}
+  }
+
+  static addCustomMacro(name: string, description: string, actions: MacroAction[], shortcut?: string): CustomMacro {
+    const list = this.getCustomMacros();
+    const newMacro: CustomMacro = {
+      id: `macro_${Date.now()}`,
+      name: name.trim(),
+      description: description.trim(),
+      actions,
+      shortcut: shortcut?.trim(),
+      createdAt: Date.now(),
+    };
+    const updated = [newMacro, ...list];
+    this.saveCustomMacros(updated);
+    return newMacro;
+  }
+
+  static deleteCustomMacro(id: string): void {
+    const list = this.getCustomMacros();
+    const updated = list.filter(m => m.id !== id);
+    this.saveCustomMacros(updated);
   }
 
   // --- COMMAND HISTORY (Last 20 commands) ---
@@ -414,5 +677,9 @@ export class StorageService {
     localStorage.removeItem(STORAGE_KEYS.PLUGINS);
     localStorage.removeItem(STORAGE_KEYS.PROJECTS);
     localStorage.removeItem(STORAGE_KEYS.FILES);
+    localStorage.removeItem(STORAGE_KEYS.COMMAND_HISTORY);
+    localStorage.removeItem(STORAGE_KEYS.ALIASES);
+    localStorage.removeItem(STORAGE_KEYS.MACROS);
+    localStorage.removeItem(STORAGE_KEYS.FAVORITES);
   }
 }

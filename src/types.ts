@@ -1,7 +1,10 @@
 export type ApprovedLocation = 'Desktop' | 'Documents' | 'Downloads' | 'Pictures' | 'Videos';
 
 export type SidebarTab = 
+  | 'dashboard'
   | 'chat'
+  | 'command_center'
+  | 'tools'
   | 'settings'
   | 'all_chats'
   | 'recent_chats'
@@ -99,6 +102,43 @@ export type WindowsAppId =
   | 'control'
   | 'calendar';
 
+export interface CustomAlias {
+  id: string;
+  alias: string;
+  command: string;
+  createdAt: number;
+}
+
+export interface MacroAction {
+  id: string;
+  command: string;
+  delayMs?: number;
+  description?: string;
+}
+
+export interface CustomMacro {
+  id: string;
+  name: string;
+  description: string;
+  actions: MacroAction[];
+  shortcut?: string;
+  createdAt: number;
+}
+
+export interface HardwareDiagnostics {
+  cpuCores: number;
+  deviceMemoryGb?: number;
+  batteryLevel?: number;
+  batteryCharging?: boolean;
+  storageEstimateMb?: number;
+  screenResolution: string;
+  pixelRatio: number;
+  touchSupport: boolean;
+  online: boolean;
+  platform: string;
+  userAgent: string;
+}
+
 export interface AppSettings {
   agentName: string;
   language: 'uz' | 'en' | 'ru' | 'uz_lat' | 'uz_kir';
@@ -111,6 +151,10 @@ export interface AppSettings {
   notifications: boolean;
   defaultLocation: ApprovedLocation;
   permissions: PermissionSettings;
+  favoriteApps?: WindowsAppId[];
+  customAliases?: CustomAlias[];
+  customMacros?: CustomMacro[];
+  feedbackVolume?: number; // 0-100
 }
 
 export interface CommandLog {
@@ -221,4 +265,5 @@ export interface ParseResult {
   permissionType?: PermissionType;
   unrecognizedReason?: string;
   suggestedCommands?: string[];
+  resolvedAlias?: string;
 }

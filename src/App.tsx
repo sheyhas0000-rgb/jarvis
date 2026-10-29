@@ -12,6 +12,10 @@ import { PermissionModal } from './components/PermissionModal';
 import { WindowsAppModal } from './components/WindowsAppModal';
 import { LogPanel } from './components/LogPanel';
 import { SystemEnvModal } from './components/SystemEnvModal';
+import { Dashboard } from './components/Dashboard';
+import { CommandCenter } from './components/CommandCenter';
+import { DesktopTools } from './components/DesktopTools';
+import { GlobalSearchModal } from './components/GlobalSearchModal';
 import { 
   SidebarTab, 
   ChatSession, 
@@ -56,14 +60,17 @@ import {
   Clock,
   Plug,
   FolderKanban,
-  Settings as SettingsIcon
+  Settings as SettingsIcon,
+  Search,
+  LayoutDashboard
 } from 'lucide-react';
 
 export default function App() {
-  // Navigation
-  const [currentTab, setCurrentTab] = useState<SidebarTab>('chat');
+  // Navigation - default to professional Dashboard in v1.6
+  const [currentTab, setCurrentTab] = useState<SidebarTab>('dashboard');
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
+  const [isSearchModalOpen, setIsSearchModalOpen] = useState(false);
 
   // Command Execution Log Panel (v1.5)
   const [isLogPanelOpen, setIsLogPanelOpen] = useState(false);
@@ -120,13 +127,51 @@ export default function App() {
     document.documentElement.lang = activeLanguage;
     const osSuffix = effectiveOS === 'macos' ? 'macOS 27' : effectiveOS === 'android' ? 'Android 16' : 'Windows 12';
     if (activeLanguage === 'en') {
-      document.title = `JARVIS Assistant v1.5 (${osSuffix})`;
+      document.title = `JARVIS Assistant v1.6.0 (${osSuffix})`;
     } else if (activeLanguage === 'ru') {
-      document.title = `JARVIS Ассистент v1.5 (${osSuffix})`;
+      document.title = `JARVIS Ассистент v1.6.0 (${osSuffix})`;
     } else {
-      document.title = `JARVIS Yordamchisi v1.5 (${osSuffix})`;
+      document.title = `JARVIS Yordamchisi v1.6.0 (${osSuffix})`;
     }
   }, [activeLanguage, effectiveOS]);
+
+  // Global Keyboard Shortcuts (Ctrl+K, Ctrl+Shift+D/C/T/L)
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // Omnibox Search: Ctrl+K or Cmd+K
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') {
+        e.preventDefault();
+        setIsSearchModalOpen(prev => !prev);
+      }
+      // Dashboard: Ctrl+Shift+D
+      if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key.toLowerCase() === 'd') {
+        e.preventDefault();
+        setCurrentTab('dashboard');
+      }
+      // Command Center: Ctrl+Shift+C
+      if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key.toLowerCase() === 'c') {
+        e.preventDefault();
+        setCurrentTab('command_center');
+      }
+      // Desktop Tools: Ctrl+Shift+T
+      if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key.toLowerCase() === 't') {
+        e.preventDefault();
+        setCurrentTab('tools');
+      }
+      // Theme Toggle: Ctrl+Shift+L
+      if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key.toLowerCase() === 'l') {
+        e.preventDefault();
+        setSettings(prev => {
+          const nextTheme = prev.theme === 'light' ? 'dark' : 'light';
+          const updated = { ...prev, theme: nextTheme as 'dark' | 'light' };
+          StorageService.saveSettings(updated);
+          return updated;
+        });
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
 
   // Load / Refresh lists from services
   const refreshState = useCallback(() => {
@@ -524,8 +569,27 @@ export default function App() {
             </button>
           </div>
 
-          {/* Right Controls: Interactive Diagnostics Badge + Theme + Logs + Lang + Apps */}
+          {/* Right Controls: Search + Diagnostics Badge + Theme + Logs + Lang + Apps */}
           <div className="flex items-center gap-2 shrink-0">
+            {/* Global Search Omnibox Trigger (Ctrl+K) */}
+            <button
+              onClick={() => setIsSearchModalOpen(true)}
+              className={`flex items-center gap-1.5 px-2.5 py-1 rounded-xl text-[11px] font-mono border transition-all active:scale-95 cursor-pointer ${
+                effectiveOS === 'macos'
+                  ? 'bg-blue-500/10 hover:bg-blue-500/20 border-blue-400/30 text-blue-300'
+                  : effectiveOS === 'android'
+                  ? 'bg-emerald-500/10 hover:bg-emerald-500/20 border-emerald-400/30 text-emerald-300'
+                  : 'bg-cyan-950/40 hover:bg-cyan-900/50 border-cyan-800/40 text-cyan-300'
+              }`}
+              title="Qidiruv (Ctrl+K)"
+            >
+              <Search className="w-3.5 h-3.5" />
+              <span className="hidden md:inline font-semibold">Qidiruv</span>
+              <kbd className="hidden lg:inline text-[9px] bg-black/40 px-1.5 py-0.5 rounded border border-white/10 font-bold">
+                Ctrl+K
+              </kbd>
+            </button>
+
             {/* Interactive System Environment / Diagnostics Button (No fake stats!) */}
             <button
               onClick={() => setIsEnvModalOpen(true)}
@@ -628,6 +692,51 @@ export default function App() {
 
         {/* View Switcher Main Container */}
         <main className="flex-1 h-full min-h-0 relative overflow-hidden flex flex-col">
+          {currentTab === 'dashboard' && (
+            <Dashboard
+              onSelectTab={(tab) => setCurrentTab(tab)}
+              onExecuteCommand={(cmd) => {
+                executeCommandProcess(cmd);
+                setCurrentTab('chat');
+              }}
+              onOpenApp={(appId) => setActiveAppWindow(appId)}
+              onSelectChat={(chatId) => {
+                handleSelectChat(chatId);
+                setCurrentTab('chat');
+              }}
+              onNewChat={() => {
+                handleNewChat();
+                setCurrentTab('chat');
+              }}
+              onOpenEnvModal={() => setIsEnvModalOpen(true)}
+              recentChats={ChatService.getRecentChats(3)}
+              activeChatId={activeChat.id}
+              agentName={settings.agentName}
+              osTheme={effectiveOS}
+              theme={settings.theme}
+              language={activeLanguage}
+            />
+          )}
+
+          {currentTab === 'command_center' && (
+            <CommandCenter
+              settings={settings}
+              onRunCommand={(cmd) => {
+                executeCommandProcess(cmd);
+                setCurrentTab('chat');
+              }}
+              onNavigateTab={(tab) => setCurrentTab(tab)}
+            />
+          )}
+
+          {currentTab === 'tools' && (
+            <DesktopTools
+              settings={settings}
+              onUpdateSettings={handleUpdateSettings}
+              onOpenApp={(appId) => setActiveAppWindow(appId)}
+            />
+          )}
+
           {currentTab === 'chat' && (
             <ChatWindow
               chat={activeChat}
@@ -729,8 +838,20 @@ export default function App() {
             : (isLight ? 'bg-white border-slate-200 text-slate-800' : 'bg-[#080d18] border-cyan-900/30 text-zinc-100')
         }`}>
           <button
+            onClick={() => setCurrentTab('dashboard')}
+            className={`flex flex-col items-center justify-center py-1 px-2.5 rounded-2xl transition-all cursor-pointer ${
+              currentTab === 'dashboard' 
+                ? (effectiveOS === 'android' ? 'bg-emerald-500/25 text-emerald-400 font-bold' : 'text-cyan-400 font-bold') 
+                : 'text-zinc-500'
+            }`}
+          >
+            <LayoutDashboard className="w-4 h-4" />
+            <span className="text-[10px] mt-0.5">Bosh</span>
+          </button>
+
+          <button
             onClick={() => setCurrentTab('chat')}
-            className={`flex flex-col items-center justify-center py-1 px-3 rounded-2xl transition-all ${
+            className={`flex flex-col items-center justify-center py-1 px-2.5 rounded-2xl transition-all cursor-pointer ${
               currentTab === 'chat' 
                 ? (effectiveOS === 'android' ? 'bg-emerald-500/25 text-emerald-400 font-bold' : 'text-cyan-400 font-bold') 
                 : 'text-zinc-500'
@@ -741,44 +862,40 @@ export default function App() {
           </button>
 
           <button
-            onClick={() => setCurrentTab('all_chats')}
-            className={`flex flex-col items-center justify-center py-1 px-3 rounded-2xl transition-all ${
-              currentTab === 'all_chats' 
+            onClick={() => setCurrentTab('command_center')}
+            className={`flex flex-col items-center justify-center py-1 px-2.5 rounded-2xl transition-all cursor-pointer ${
+              currentTab === 'command_center' 
                 ? (effectiveOS === 'android' ? 'bg-emerald-500/25 text-emerald-400 font-bold' : 'text-cyan-400 font-bold') 
                 : 'text-zinc-500'
             }`}
           >
-            <Clock className="w-4 h-4" />
-            <span className="text-[10px] mt-0.5">{strings.nav.all_chats}</span>
+            <Terminal className="w-4 h-4" />
+            <span className="text-[10px] mt-0.5">Buyruqlar</span>
           </button>
 
           <button
-            onClick={() => setCurrentTab('plugins')}
-            className={`flex flex-col items-center justify-center py-1 px-3 rounded-2xl transition-all ${
-              currentTab === 'plugins' 
+            onClick={() => setCurrentTab('tools')}
+            className={`flex flex-col items-center justify-center py-1 px-2.5 rounded-2xl transition-all cursor-pointer ${
+              currentTab === 'tools' 
                 ? (effectiveOS === 'android' ? 'bg-emerald-500/25 text-emerald-400 font-bold' : 'text-cyan-400 font-bold') 
                 : 'text-zinc-500'
             }`}
           >
-            <Plug className="w-4 h-4" />
-            <span className="text-[10px] mt-0.5">{strings.nav.plugins}</span>
+            <Monitor className="w-4 h-4" />
+            <span className="text-[10px] mt-0.5">Asboblar</span>
           </button>
 
           <button
-            onClick={() => setCurrentTab('projects')}
-            className={`flex flex-col items-center justify-center py-1 px-3 rounded-2xl transition-all ${
-              currentTab === 'projects' 
-                ? (effectiveOS === 'android' ? 'bg-emerald-500/25 text-emerald-400 font-bold' : 'text-cyan-400 font-bold') 
-                : 'text-zinc-500'
-            }`}
+            onClick={() => setIsSearchModalOpen(true)}
+            className="flex flex-col items-center justify-center py-1 px-2.5 rounded-2xl transition-all text-zinc-500 cursor-pointer"
           >
-            <FolderKanban className="w-4 h-4" />
-            <span className="text-[10px] mt-0.5">{strings.nav.projects}</span>
+            <Search className="w-4 h-4" />
+            <span className="text-[10px] mt-0.5">Qidiruv</span>
           </button>
 
           <button
             onClick={() => setCurrentTab('settings')}
-            className={`flex flex-col items-center justify-center py-1 px-3 rounded-2xl transition-all ${
+            className={`flex flex-col items-center justify-center py-1 px-2.5 rounded-2xl transition-all cursor-pointer ${
               currentTab === 'settings' 
                 ? (effectiveOS === 'android' ? 'bg-emerald-500/25 text-emerald-400 font-bold' : 'text-cyan-400 font-bold') 
                 : 'text-zinc-500'
@@ -789,6 +906,19 @@ export default function App() {
           </button>
         </nav>
       </div>
+
+      {/* Global Omnibox Search Modal (Ctrl+K) */}
+      <GlobalSearchModal
+        isOpen={isSearchModalOpen}
+        onClose={() => setIsSearchModalOpen(false)}
+        onSelectTab={(tab) => setCurrentTab(tab)}
+        onRunCommand={(cmd) => {
+          executeCommandProcess(cmd);
+          setCurrentTab('chat');
+        }}
+        onOpenApp={(appId) => setActiveAppWindow(appId)}
+        settings={settings}
+      />
 
       {/* Sensitive Action Permission Confirmation Modal */}
       {pendingPermission && (

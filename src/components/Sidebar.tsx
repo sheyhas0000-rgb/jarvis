@@ -11,7 +11,10 @@ import {
   User, 
   ChevronLeft, 
   ChevronRight,
-  ShieldCheck
+  ShieldCheck,
+  LayoutDashboard,
+  Terminal,
+  Monitor
 } from 'lucide-react';
 import { SidebarTab, ChatSession, SupportedLanguage, ActiveOSType } from '../types';
 import { t } from '../utils/i18n';
@@ -53,15 +56,18 @@ export const Sidebar: React.FC<SidebarProps> = ({
   const isLight = theme === 'light';
 
   const navItems: { id: SidebarTab; label: string; icon: React.ReactNode; badge?: string }[] = [
-    { id: 'settings', label: strings.nav.settings, icon: <SettingsIcon className="w-5 h-5" /> },
-    { id: 'all_chats', label: strings.nav.all_chats, icon: <MessageSquare className="w-5 h-5" /> },
+    { id: 'dashboard', label: 'Bosh Sahifa', icon: <LayoutDashboard className="w-5 h-5" /> },
+    { id: 'command_center', label: 'Command Center', icon: <Terminal className="w-5 h-5" />, badge: '2.0' },
+    { id: 'tools', label: 'Desktop Tools', icon: <Monitor className="w-5 h-5" /> },
     { id: 'recent_chats', label: strings.nav.recent_chats, icon: <Clock className="w-5 h-5" /> },
+    { id: 'all_chats', label: strings.nav.all_chats, icon: <MessageSquare className="w-5 h-5" /> },
     { id: 'plugins', label: strings.nav.plugins, icon: <Plug className="w-5 h-5" /> },
     { id: 'projects', label: strings.nav.projects, icon: <FolderKanban className="w-5 h-5" /> },
+    { id: 'settings', label: strings.nav.settings, icon: <SettingsIcon className="w-5 h-5" /> },
   ];
 
   const bottomItems: { id: SidebarTab; label: string; icon: React.ReactNode; badge?: string }[] = [
-    { id: 'updates', label: strings.nav.updates, icon: <Bell className="w-5 h-5" />, badge: 'v1.5' },
+    { id: 'updates', label: strings.nav.updates, icon: <Bell className="w-5 h-5" />, badge: 'v1.6' },
     { id: 'profile', label: strings.nav.profile, icon: <User className="w-5 h-5" /> },
   ];
 

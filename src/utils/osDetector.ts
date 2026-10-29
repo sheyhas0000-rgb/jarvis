@@ -228,3 +228,17 @@ export function getOSThemeTokens(os: ActiveOSType, theme: 'dark' | 'light'): OST
       : 'bg-black/50 border-cyan-900/50 text-cyan-200 rounded-lg focus:border-cyan-400',
   };
 }
+
+export function getThemeTokens(os: ActiveOSType | OSThemePreference = 'windows', theme: 'dark' | 'light' = 'dark') {
+  const effective = getEffectiveOSType(os as OSThemePreference);
+  const isLight = theme === 'light';
+  return {
+    effective,
+    isLight,
+    cardBg: isLight ? 'bg-white/80 backdrop-blur-xl' : 'bg-slate-900/60 backdrop-blur-xl',
+    cardBorder: isLight ? 'border border-slate-200' : 'border border-white/10',
+    textPrimary: isLight ? 'text-slate-900' : 'text-zinc-100',
+    textSecondary: isLight ? 'text-slate-600' : 'text-zinc-400',
+  };
+}
+
